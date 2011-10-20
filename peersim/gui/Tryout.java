@@ -56,6 +56,8 @@ public class Tryout extends PFrame {
             float y = random.nextInt(768);
             PPath node = PPath.createEllipse(x, y, 16, 16);
             node.addAttribute("edges", new ArrayList());
+            node.addAttribute("prevPeers", new ArrayList());
+            node.addAttribute("nextPeers", new ArrayList());
             nodeLayer.addChild(node);
         }
 
@@ -69,7 +71,9 @@ public class Tryout extends PFrame {
                 PNode node2 = nodeLayer.getChild(n2);
                 PPath edge = new PPath();
                 ((ArrayList) node1.getAttribute("edges")).add(edge);
+                ((ArrayList) node1.getAttribute("nextPeers")).add(node2); 
                 ((ArrayList) node2.getAttribute("edges")).add(edge);
+                ((ArrayList) node2.getAttribute("prevPeers")).add(node1);
                 edge.addAttribute("nodes", new ArrayList());
                 ((ArrayList) edge.getAttribute("nodes")).add(node1);
                 ((ArrayList) edge.getAttribute("nodes")).add(node2);
@@ -90,16 +94,15 @@ public class Tryout extends PFrame {
                 super.mouseEntered(e);
                 if (e.getButton() == MouseEvent.NOBUTTON) {
                     e.getPickedNode().setPaint(Color.RED);
-                    ArrayList edges = (ArrayList) e.getPickedNode().getAttribute("edges");
-                    for(int i = 0;i < edges.size();i++){
-                        PPath edge = (PPath) edges.get(i);
-                        PNode node1 = (PNode) ((ArrayList) edge.getAttribute("nodes")).get(0);
-                        PNode node2 = (PNode) ((ArrayList) edge.getAttribute("nodes")).get(1);
-                        if(e.getPickedNode().equals(node1)){
-                            node2.setPaint(Color.BLUE);
-                        }else{
-                            node1.setPaint(Color.BLUE);
-                        }
+                    ArrayList prevPeers = (ArrayList) e.getPickedNode().getAttribute("prevPeers");
+                    ArrayList nextPeers = (ArrayList) e.getPickedNode().getAttribute("nextPeers");
+                    for(int i = 0; i<prevPeers.size();i++){
+                        PNode prevNode = (PNode) prevPeers.get(i);
+                        prevNode.setPaint(Color.GREEN);
+                    }
+                    for(int i = 0; i<nextPeers.size();i++){
+                        PNode nextNode = (PNode) nextPeers.get(i);
+                        nextNode.setPaint(Color.BLUE);
                     }
                 }
             }
@@ -108,13 +111,15 @@ public class Tryout extends PFrame {
                 super.mouseExited(e);
                 if (e.getButton() == MouseEvent.NOBUTTON) {
                     e.getPickedNode().setPaint(Color.WHITE);
-                    ArrayList edges = (ArrayList) e.getPickedNode().getAttribute("edges");
-                    for(int i = 0;i < edges.size();i++){
-                        PPath edge = (PPath) edges.get(i);
-                        PNode node1 = (PNode) ((ArrayList) edge.getAttribute("nodes")).get(0);
-                        PNode node2 = (PNode) ((ArrayList) edge.getAttribute("nodes")).get(1);
-                        node1.setPaint(Color.WHITE);
-                        node2.setPaint(Color.WHITE);
+                    ArrayList prevPeers = (ArrayList) e.getPickedNode().getAttribute("prevPeers");
+                    ArrayList nextPeers = (ArrayList) e.getPickedNode().getAttribute("nextPeers");
+                    for(int i = 0; i<prevPeers.size();i++){
+                        PNode prevNode = (PNode) prevPeers.get(i);
+                        prevNode.setPaint(Color.WHITE);
+                    }
+                    for(int i = 0; i<nextPeers.size();i++){
+                        PNode nextNode = (PNode) nextPeers.get(i);
+                        nextNode.setPaint(Color.WHITE);
                     }
                 }
             }
