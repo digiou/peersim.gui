@@ -195,7 +195,6 @@ public static void main(String[] args)
 				break;
 			}
                         // XXX call to GUI constructors, for faster access
-                        Tryout tryout = new Tryout();
 		}
 	
 	} catch (MissingParameterException e) {
