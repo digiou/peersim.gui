@@ -2,14 +2,12 @@
 package peersim.gui;
 
 import edu.umd.cs.piccolo.PCamera;
-import edu.umd.cs.piccolo.PCanvas;
 import edu.umd.cs.piccolo.nodes.PPath;
 import edu.umd.cs.piccolox.PFrame;
 import edu.umd.cs.piccolox.pswing.PSwingCanvas;
 import java.awt.Dimension;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
-import java.lang.Math;
 
 /**
  *
