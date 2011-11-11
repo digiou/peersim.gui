@@ -195,6 +195,7 @@ public static void main(String[] args)
 				break;
 			}
                         // XXX call to GUI constructors, for faster access
+                        Ring ring = new Ring();
 		}
 	
 	} catch (MissingParameterException e) {
