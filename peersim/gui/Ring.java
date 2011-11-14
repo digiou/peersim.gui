@@ -4,11 +4,17 @@ import edu.umd.cs.piccolo.PCamera;
 import edu.umd.cs.piccolo.PCanvas;
 import edu.umd.cs.piccolo.PLayer;
 import edu.umd.cs.piccolo.PNode;
+import edu.umd.cs.piccolo.event.PBasicInputEventHandler;
+import edu.umd.cs.piccolo.event.PInputEvent;
+import edu.umd.cs.piccolo.event.PInputEventFilter;
 import edu.umd.cs.piccolo.nodes.PPath;
 import edu.umd.cs.piccolox.PFrame;
 import edu.umd.cs.piccolox.pswing.PSwingCanvas;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Shape;
+import java.awt.event.InputEvent;
+import java.awt.event.MouseEvent;
 import java.awt.geom.GeneralPath;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
@@ -65,6 +71,8 @@ public class Ring extends PFrame {
                 PNode node2 = nodeLayer.getChild(n2);
                 Point2D start = node1.getFullBoundsReference().getCenter2D();
                 Point2D end = node2.getFullBoundsReference().getCenter2D();
+                ((ArrayList) node1.getAttribute("nextPeers")).add(node2);
+                ((ArrayList) node2.getAttribute("prevPeers")).add(node1);
                 PPath edge = new PPath(createArrow(new Point2D.Double(start.getX(), start.getY()),
                         new Point2D.Double(end.getX(), end.getY())));
 
@@ -74,11 +82,65 @@ public class Ring extends PFrame {
                 edge.addAttribute("nodes", new ArrayList());
                 ((ArrayList) edge.getAttribute("nodes")).add(node1);
                 ((ArrayList) edge.getAttribute("nodes")).add(node2);
+                edge.setVisible(false);
                 edgeLayer.addChild(edge);
             }
         }
+
+        nodeLayer.addInputEventListener(new PBasicInputEventHandler() {
+
+            {
+                PInputEventFilter filter = new PInputEventFilter();
+                filter.setOrMask(InputEvent.BUTTON1_MASK);
+                setEventFilter(filter);
+            }
+
+            public void mouseEntered(PInputEvent e) {
+                super.mouseEntered(e);
+                if (e.getButton() == MouseEvent.NOBUTTON) {
+                    e.getPickedNode().setPaint(Color.GREEN);
+                    ArrayList prevPeers = (ArrayList) e.getPickedNode().getAttribute("prevPeers");
+                    ArrayList nextPeers = (ArrayList) e.getPickedNode().getAttribute("nextPeers");
+                    ArrayList edges = (ArrayList) e.getPickedNode().getAttribute("edges");
+                    for (int i = 0; i < prevPeers.size(); i++) {
+                        PNode prevNode = (PNode) prevPeers.get(i);
+                        prevNode.setPaint(Color.RED);
+                    }
+                    for (int i = 0; i < nextPeers.size(); i++) {
+                        PNode nextNode = (PNode) nextPeers.get(i);
+                        nextNode.setPaint(Color.BLUE);
+                    }
+                    for (int i = 0; i < edges.size(); i++){
+                        PPath edge = (PPath) edges.get(i);
+                        edge.setVisible(true);
+                    }
+                }
+            }
+
+            public void mouseExited(PInputEvent e) {
+                super.mouseExited(e);
+                if (e.getButton() == MouseEvent.NOBUTTON) {
+                    e.getPickedNode().setPaint(Color.WHITE);
+                    ArrayList prevPeers = (ArrayList) e.getPickedNode().getAttribute("prevPeers");
+                    ArrayList nextPeers = (ArrayList) e.getPickedNode().getAttribute("nextPeers");
+                    ArrayList edges = (ArrayList) e.getPickedNode().getAttribute("edges");
+                    for (int i = 0; i < prevPeers.size(); i++) {
+                        PNode prevNode = (PNode) prevPeers.get(i);
+                        prevNode.setPaint(Color.WHITE);
+                    }
+                    for (int i = 0; i < nextPeers.size(); i++) {
+                        PNode nextNode = (PNode) nextPeers.get(i);
+                        nextNode.setPaint(Color.WHITE);
+                    }
+                    for (int i = 0; i < edges.size(); i++){
+                        PPath edge = (PPath) edges.get(i);
+                        edge.setVisible(false);
+                    }
+                }
+            }
+        });
     }
-    
+
     private Shape createArrow(Point2D start, Point2D end) {
 
         // Arrow settings.
