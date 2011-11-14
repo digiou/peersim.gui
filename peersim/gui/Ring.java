@@ -50,7 +50,7 @@ public class Ring extends PFrame {
         canvas.getRoot().addChild(edgeLayer);
         camera.addLayer(0, edgeLayer);
 
-        Point2D center = new Point2D.Double((float) SCREEN.width / 2, (float) SCREEN.height);
+        Point2D center = new Point2D.Double((float) (SCREEN.width / 2), (float) SCREEN.height);
         ArrayList<Point2D> circlePoints = circlePoints(center, (float) SCREEN.height / 2);
         for (int i = 0; i < NODES; i++) {
             Point2D point = circlePoints.get(i);
@@ -99,16 +99,19 @@ public class Ring extends PFrame {
                 super.mouseEntered(e);
                 if (e.getButton() == MouseEvent.NOBUTTON) {
                     e.getPickedNode().setPaint(Color.GREEN);
+                    e.getPickedNode().moveToFront();
                     ArrayList prevPeers = (ArrayList) e.getPickedNode().getAttribute("prevPeers");
                     ArrayList nextPeers = (ArrayList) e.getPickedNode().getAttribute("nextPeers");
                     ArrayList edges = (ArrayList) e.getPickedNode().getAttribute("edges");
                     for (int i = 0; i < prevPeers.size(); i++) {
                         PNode prevNode = (PNode) prevPeers.get(i);
                         prevNode.setPaint(Color.RED);
+                        prevNode.moveToFront();
                     }
                     for (int i = 0; i < nextPeers.size(); i++) {
                         PNode nextNode = (PNode) nextPeers.get(i);
                         nextNode.setPaint(Color.BLUE);
+                        nextNode.moveToFront();
                     }
                     for (int i = 0; i < edges.size(); i++){
                         PPath edge = (PPath) edges.get(i);
@@ -121,16 +124,19 @@ public class Ring extends PFrame {
                 super.mouseExited(e);
                 if (e.getButton() == MouseEvent.NOBUTTON) {
                     e.getPickedNode().setPaint(Color.WHITE);
+                    e.getPickedNode().moveToBack();
                     ArrayList prevPeers = (ArrayList) e.getPickedNode().getAttribute("prevPeers");
                     ArrayList nextPeers = (ArrayList) e.getPickedNode().getAttribute("nextPeers");
                     ArrayList edges = (ArrayList) e.getPickedNode().getAttribute("edges");
                     for (int i = 0; i < prevPeers.size(); i++) {
                         PNode prevNode = (PNode) prevPeers.get(i);
                         prevNode.setPaint(Color.WHITE);
+                        prevNode.moveToBack();
                     }
                     for (int i = 0; i < nextPeers.size(); i++) {
                         PNode nextNode = (PNode) nextPeers.get(i);
                         nextNode.setPaint(Color.WHITE);
+                        nextNode.moveToBack();
                     }
                     for (int i = 0; i < edges.size(); i++){
                         PPath edge = (PPath) edges.get(i);
