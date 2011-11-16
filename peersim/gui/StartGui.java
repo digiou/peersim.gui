@@ -11,9 +11,13 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.util.Formatter;
 import java.util.Scanner;
 import javax.swing.BorderFactory;
+import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -24,17 +28,17 @@ import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.border.EtchedBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import peersim.Simulator;
 
 /**
  *
  * @author Dimitris
  */
-public class StartGui extends JFrame {
+public class StartGui extends JDialog {
 
     private JTextArea inputTextArea = new JTextArea();
     private JTextArea outputTextArea = new JTextArea();
@@ -43,31 +47,20 @@ public class StartGui extends JFrame {
     private JFileChooser fileChooser = new JFileChooser();
     private boolean isSaved = true;
     DetectChangeDocumentListener textAreaDocumentListener;
-    
-    public static void main(String[] args) {
-        try{
-            UIManager.setLookAndFeel(
-            UIManager.getSystemLookAndFeelClassName());
-        }catch(Exception e){
-            System.err.println("Determining system L&F failed: falling back to default");
-        }
-        
-        StartGui myGui = new StartGui();
-        myGui.setVisible(true);
-    }
 
     public StartGui() {
-        super("PeerSim GUI");
+        setModal(true);
+        setTitle("Peersim GUI");
         setSize(800, 600);
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         setLayout(new BorderLayout());
-                
+
         textAreaDocumentListener = new DetectChangeDocumentListener(this);
         inputTextArea.getDocument().addDocumentListener(textAreaDocumentListener);
         JScrollPane inputScrollPane = new JScrollPane(inputTextArea);
         outputTextArea.setEditable(false);
         JScrollPane outputScrollPane = new JScrollPane(outputTextArea);
-        
+
         JTabbedPane tabbedPane = new JTabbedPane();
         tabbedPane.addTab("Input file", inputScrollPane);
         tabbedPane.addTab("Console output", outputScrollPane);
@@ -103,15 +96,16 @@ public class StartGui extends JFrame {
         fileMenu.add(saveMenuItem);
         fileMenu.addSeparator();
         fileMenu.add(exitMenuItem);
-        
+
         JMenu simuMenu = new JMenu("Simulation");
         JMenuItem startMenuItem = new JMenuItem("Start");
         startMenuItem.addActionListener(new ActionListener() {
+
             public void actionPerformed(ActionEvent e) {
                 startSimuation();
             }
         });
-        
+
         simuMenu.add(startMenuItem);
 
         JMenuBar menuBar = new JMenuBar();
@@ -119,11 +113,11 @@ public class StartGui extends JFrame {
         menuBar.add(simuMenu);
 
         setJMenuBar(menuBar);
-        
+
         status = new JLabel("No file selected.");
         status.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED));
         add(status, BorderLayout.PAGE_END);
-        
+
         addWindowListener(new WindowAdapter() {
 
             public void windowClosing(WindowEvent e) {
@@ -131,6 +125,8 @@ public class StartGui extends JFrame {
                 handleExit();
             }
         });
+
+        setVisible(true);
     }
 
     private void loadFile() {
@@ -145,7 +141,7 @@ public class StartGui extends JFrame {
                 }
                 inputTextArea.setText(textBuffer.toString());
                 inputTextArea.setEditable(true);
-                status.setText("Using file: "+ file.getAbsolutePath());
+                status.setText("Using file: " + file.getAbsolutePath());
             } catch (FileNotFoundException e) {
                 JOptionPane.showMessageDialog(this, "Couldn't save file.", "Error", JOptionPane.ERROR_MESSAGE);
                 return;
@@ -198,14 +194,49 @@ public class StartGui extends JFrame {
 
         return false;
     }
-    
-    private void startSimuation(){
-        if(isSaved){
+
+    private void startSimuation() {
+        if (isSaved) {
+            redirectSystemStreams();
             // XXX to do
+            
         } else {
             saveFile();
+            redirectSystemStreams();
             // XXX to do
+            
         }
+    }
+
+    private void updateTextArea(final String text) {
+        SwingUtilities.invokeLater(new Runnable() {
+
+            public void run() {
+                outputTextArea.append(text);
+            }
+        });
+    }
+
+    private void redirectSystemStreams() {
+        OutputStream out = new OutputStream() {
+
+            @Override
+            public void write(int b) throws IOException {
+                updateTextArea(String.valueOf((char) b));
+            }
+
+            @Override
+            public void write(byte[] b, int off, int len) throws IOException {
+                updateTextArea(new String(b, off, len));
+            }
+
+            @Override
+            public void write(byte[] b) throws IOException {
+                write(b, 0, b.length);
+            }
+        };
+        System.setOut(new PrintStream(out, true));
+        System.setErr(new PrintStream(out, true));
     }
 
     private class DetectChangeDocumentListener implements DocumentListener {
@@ -230,7 +261,7 @@ public class StartGui extends JFrame {
 
         private void markChanged() {
             isSaved = false;
-            if(status.getText().contains("No file selected.")){
+            if (status.getText().contains("No file selected.")) {
                 status.setText("Using new file.");
             }
             inputTextArea.getDocument().removeDocumentListener(this);
