@@ -14,7 +14,6 @@ import java.io.FileNotFoundException;
 import java.util.Formatter;
 import java.util.Scanner;
 import javax.swing.BorderFactory;
-import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -29,6 +28,7 @@ import javax.swing.UIManager;
 import javax.swing.border.EtchedBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import peersim.Simulator;
 
 /**
  *
@@ -188,6 +188,7 @@ public class StartGui extends JFrame {
                 file = fileChooser.getSelectedFile();
                 isSaved = true;
                 inputTextArea.getDocument().addDocumentListener(textAreaDocumentListener);
+                status.setText("Using file: " + file.getAbsolutePath());
                 return true;
             } catch (FileNotFoundException e) {
                 JOptionPane.showMessageDialog(this, "Couldn't save file!", "Error", JOptionPane.ERROR_MESSAGE);
@@ -199,7 +200,12 @@ public class StartGui extends JFrame {
     }
     
     private void startSimuation(){
-        
+        if(isSaved){
+            // XXX to do
+        } else {
+            saveFile();
+            // XXX to do
+        }
     }
 
     private class DetectChangeDocumentListener implements DocumentListener {
