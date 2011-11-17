@@ -134,17 +134,8 @@ public class Simulator {
      * @see CDSimulator
      * @see EDSimulator
      */
-    public static void main(String[] args) {
-        if (args[0].equals("-gui")) {
-            try {
-                UIManager.setLookAndFeel(
-                        UIManager.getSystemLookAndFeelClassName());
-            } catch (Exception e) {
-                System.err.println("Determining system L&F failed: falling back to default");
-            }
-            StartGui myStartGui = new StartGui();
-        }
-
+    public static void main(String[] args){
+        
         long time = System.currentTimeMillis();
 
         System.err.println("Simulator: loading configuration");

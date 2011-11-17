@@ -2,7 +2,6 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package peersim.gui;
 
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
@@ -38,7 +37,7 @@ import javax.swing.event.DocumentListener;
  *
  * @author Dimitris
  */
-public class StartGui extends JDialog {
+public class StartGui extends JFrame {
 
     private JTextArea inputTextArea = new JTextArea();
     private JTextArea outputTextArea = new JTextArea();
@@ -49,8 +48,7 @@ public class StartGui extends JDialog {
     DetectChangeDocumentListener textAreaDocumentListener;
 
     public StartGui() {
-        setModal(true);
-        setTitle("Peersim GUI");
+        setTitle("Peersim Launcher");
         setSize(800, 600);
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         setLayout(new BorderLayout());
