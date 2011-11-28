@@ -19,7 +19,6 @@ package peersim;
 
 import java.io.*;
 
-import javax.swing.UIManager;
 import peersim.cdsim.*;
 import peersim.config.*;
 import peersim.core.*;
