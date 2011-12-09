@@ -25,17 +25,17 @@ import peersim.core.Network;
  *
  * @author jim
  */
-public class Ring extends PFrame {
+public class ChordRing extends PFrame {
 
     private static final Dimension SCREEN = new Dimension(1024, 768);
     private static final int NODES = Network.size();
     private PCamera camera;
 
     public static void main(String[] args) {
-        new Ring();
+        new ChordRing();
     }
 
-    public Ring() {
+    public ChordRing() {
         super("Ring", false, new PSwingCanvas());
     }
 
