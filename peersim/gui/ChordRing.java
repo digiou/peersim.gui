@@ -49,6 +49,17 @@ public class ChordRing extends PFrame {
         PLayer edgeLayer = new PLayer();
         canvas.getRoot().addChild(edgeLayer);
         camera.addLayer(0, edgeLayer);
+        
+        int margin = 50;
+        int width = SCREEN.width;
+        int height = SCREEN.height;
+        int radius = width / 2;
+        int cx = margin + radius;
+        int cy = margin + radius;
+        
+        for(int i = 0; i < NODES; i++){
+            
+        }
 
         Point2D center = new Point2D.Double((float) (SCREEN.width / 2), (float) SCREEN.height);
         ArrayList<Point2D> circlePoints = circlePoints(center, (float) SCREEN.height / 2);
@@ -86,7 +97,7 @@ public class ChordRing extends PFrame {
                 edgeLayer.addChild(edge);
             }
         }
-
+        
         nodeLayer.addInputEventListener(new PBasicInputEventHandler() {
 
             {
