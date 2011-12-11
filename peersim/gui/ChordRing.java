@@ -18,6 +18,7 @@ import java.awt.event.MouseEvent;
 import java.awt.geom.GeneralPath;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
+import peersim.chord.ChordProtocol;
 import peersim.core.Linkable;
 import peersim.core.Network;
 
@@ -30,6 +31,12 @@ public class ChordRing extends PFrame {
     private static final Dimension SCREEN = new Dimension(1024, 768);
     private static final int NODES = Network.size();
     private PCamera camera;
+    int margin = 50;
+    int width = SCREEN.width;
+    int height = SCREEN.height;
+    int radius = width / 2;
+    float cx = margin + radius;
+    float cy = margin + radius;
 
     public static void main(String[] args) {
         new ChordRing();
@@ -44,26 +51,15 @@ public class ChordRing extends PFrame {
         setSize(SCREEN);
         final PCanvas canvas = getCanvas();
         camera = canvas.getCamera();
-
         PLayer nodeLayer = canvas.getLayer();
         PLayer edgeLayer = new PLayer();
         canvas.getRoot().addChild(edgeLayer);
         camera.addLayer(0, edgeLayer);
-        
-        int margin = 50;
-        int width = SCREEN.width;
-        int height = SCREEN.height;
-        int radius = width / 2;
-        int cx = margin + radius;
-        int cy = margin + radius;
-        
-        for(int i = 0; i < NODES; i++){
-            
-        }
 
         Point2D center = new Point2D.Double((float) (SCREEN.width / 2), (float) SCREEN.height);
         ArrayList<Point2D> circlePoints = circlePoints(center, (float) SCREEN.height / 2);
-        for (int i = 0; i < NODES; i++) {
+
+        for (int i = 0;i < NODES;i++) {
             Point2D point = circlePoints.get(i);
             PPath node = PPath.createEllipse((float) point.getX(), (float) point.getY(), 16, 16);
             node.addAttribute("edges", new ArrayList());
@@ -72,7 +68,7 @@ public class ChordRing extends PFrame {
             nodeLayer.addChild(node);
         }
 
-        for (int i = 0; i < NODES; i++) {
+        for (int i = 0;i < NODES;i++) {
             int n1 = i;
             Linkable p = (Linkable) Network.get(i).getProtocol(1);
             for (int j = 0; j < p.degree(); j++) {
@@ -97,65 +93,74 @@ public class ChordRing extends PFrame {
                 edgeLayer.addChild(edge);
             }
         }
-        
-        nodeLayer.addInputEventListener(new PBasicInputEventHandler() {
 
-            {
-                PInputEventFilter filter = new PInputEventFilter();
-                filter.setOrMask(InputEvent.BUTTON1_MASK);
-                setEventFilter(filter);
-            }
+        nodeLayer.addInputEventListener(
+                new PBasicInputEventHandler() {
 
-            public void mouseEntered(PInputEvent e) {
-                super.mouseEntered(e);
-                if (e.getButton() == MouseEvent.NOBUTTON) {
-                    e.getPickedNode().setPaint(Color.GREEN);
-                    e.getPickedNode().moveToFront();
-                    ArrayList prevPeers = (ArrayList) e.getPickedNode().getAttribute("prevPeers");
-                    ArrayList nextPeers = (ArrayList) e.getPickedNode().getAttribute("nextPeers");
-                    ArrayList edges = (ArrayList) e.getPickedNode().getAttribute("edges");
-                    for (int i = 0; i < prevPeers.size(); i++) {
-                        PNode prevNode = (PNode) prevPeers.get(i);
-                        prevNode.setPaint(Color.RED);
-                        prevNode.moveToFront();
+                    {
+                        PInputEventFilter filter = new PInputEventFilter();
+                        filter.setOrMask(InputEvent.BUTTON1_MASK);
+                        setEventFilter(filter);
                     }
-                    for (int i = 0; i < nextPeers.size(); i++) {
-                        PNode nextNode = (PNode) nextPeers.get(i);
-                        nextNode.setPaint(Color.BLUE);
-                        nextNode.moveToFront();
-                    }
-                    for (int i = 0; i < edges.size(); i++){
-                        PPath edge = (PPath) edges.get(i);
-                        edge.setVisible(true);
-                    }
-                }
-            }
 
-            public void mouseExited(PInputEvent e) {
-                super.mouseExited(e);
-                if (e.getButton() == MouseEvent.NOBUTTON) {
-                    e.getPickedNode().setPaint(Color.WHITE);
-                    e.getPickedNode().moveToBack();
-                    ArrayList prevPeers = (ArrayList) e.getPickedNode().getAttribute("prevPeers");
-                    ArrayList nextPeers = (ArrayList) e.getPickedNode().getAttribute("nextPeers");
-                    ArrayList edges = (ArrayList) e.getPickedNode().getAttribute("edges");
-                    for (int i = 0; i < prevPeers.size(); i++) {
-                        PNode prevNode = (PNode) prevPeers.get(i);
-                        prevNode.setPaint(Color.WHITE);
-                        prevNode.moveToBack();
+                    public void mouseEntered(PInputEvent e) {
+                        super.mouseEntered(e);
+                        if (e.getButton() == MouseEvent.NOBUTTON) {
+                            e.getPickedNode().setPaint(Color.GREEN);
+                            e.getPickedNode().moveToFront();
+                            ArrayList prevPeers = (ArrayList) e.getPickedNode().getAttribute("prevPeers");
+                            ArrayList nextPeers = (ArrayList) e.getPickedNode().getAttribute("nextPeers");
+                            ArrayList edges = (ArrayList) e.getPickedNode().getAttribute("edges");
+                            for (int i = 0; i < prevPeers.size(); i++) {
+                                PNode prevNode = (PNode) prevPeers.get(i);
+                                prevNode.setPaint(Color.RED);
+                                prevNode.moveToFront();
+                            }
+                            for (int i = 0; i < nextPeers.size(); i++) {
+                                PNode nextNode = (PNode) nextPeers.get(i);
+                                nextNode.setPaint(Color.BLUE);
+                                nextNode.moveToFront();
+                            }
+                            for (int i = 0; i < edges.size(); i++) {
+                                PPath edge = (PPath) edges.get(i);
+                                edge.setVisible(true);
+                            }
+                        }
                     }
-                    for (int i = 0; i < nextPeers.size(); i++) {
-                        PNode nextNode = (PNode) nextPeers.get(i);
-                        nextNode.setPaint(Color.WHITE);
-                        nextNode.moveToBack();
+
+                    public void mouseExited(PInputEvent e) {
+                        super.mouseExited(e);
+                        if (e.getButton() == MouseEvent.NOBUTTON) {
+                            e.getPickedNode().setPaint(Color.WHITE);
+                            e.getPickedNode().moveToBack();
+                            ArrayList prevPeers = (ArrayList) e.getPickedNode().getAttribute("prevPeers");
+                            ArrayList nextPeers = (ArrayList) e.getPickedNode().getAttribute("nextPeers");
+                            ArrayList edges = (ArrayList) e.getPickedNode().getAttribute("edges");
+                            for (int i = 0; i < prevPeers.size(); i++) {
+                                PNode prevNode = (PNode) prevPeers.get(i);
+                                prevNode.setPaint(Color.WHITE);
+                                prevNode.moveToBack();
+                            }
+                            for (int i = 0; i < nextPeers.size(); i++) {
+                                PNode nextNode = (PNode) nextPeers.get(i);
+                                nextNode.setPaint(Color.WHITE);
+                                nextNode.moveToBack();
+                            }
+                            for (int i = 0; i < edges.size(); i++) {
+                                PPath edge = (PPath) edges.get(i);
+                                edge.setVisible(false);
+                            }
+                        }
                     }
-                    for (int i = 0; i < edges.size(); i++){
-                        PPath edge = (PPath) edges.get(i);
-                        edge.setVisible(false);
-                    }
-                }
-            }
-        });
+                });
+    }
+
+    public void drawNodes(PLayer edgeLayer) {
+        for (int i = 0; i < NODES; i++) {
+            ChordProtocol cp = (ChordProtocol) Network.get(i).getProtocol(0);
+            double angle = getAngle(cp);
+            edgeLayer.addChild(createSingleNode(angle));
+        }
     }
 
     private Shape createArrow(Point2D start, Point2D end) {
@@ -199,5 +204,20 @@ public class ChordRing extends PFrame {
             points.add(new Point2D.Double(x, y));
         }
         return points;
+    }
+
+    private PPath createSingleNode(double angle) {
+        float x = cx - 5 + (float) (radius * Math.sin(angle));
+        float y = cy - 5 - (float) (radius * Math.cos(angle));
+        PPath node = PPath.createEllipse(x, y, 10, 10);
+        return node;
+    }
+
+    private double getAngle(ChordProtocol cp) {
+        double chordId = cp.chordId.doubleValue();
+        double maxValue = Math.pow(2, cp.m);
+        double degree = ((chordId / maxValue) * 365);
+        double radian = degree / 180 * Math.PI;
+        return radian;
     }
 }
