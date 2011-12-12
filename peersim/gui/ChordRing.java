@@ -39,7 +39,9 @@ public class ChordRing extends PFrame {
     int radius = width / 2;
     float cx = margin + radius;
     float cy = margin + radius;
-    Hashtable<Long, Integer> hashTable = new Hashtable<Long, Integer>(Network.size());
+    Hashtable<Long, Integer> hashTable = new Hashtable<Long, Integer>(NODES);
+    final PCanvas canvas = getCanvas();
+    PLayer nodeLayer = canvas.getLayer();
 
     public static void main(String[] args) {
         new ChordRing();
@@ -52,9 +54,9 @@ public class ChordRing extends PFrame {
     @Override
     public void initialize() {
         setSize(SCREEN);
-        final PCanvas canvas = getCanvas();
+
         camera = canvas.getCamera();
-        final PLayer nodeLayer = canvas.getLayer();
+
         PLayer edgeLayer = new PLayer();
         canvas.getRoot().addChild(edgeLayer);
         camera.addLayer(0, edgeLayer);
@@ -98,8 +100,8 @@ public class ChordRing extends PFrame {
         }
         }*/
 
-        nodeLayer.addInputEventListener(
-                new PBasicInputEventHandler() {
+        nodeLayer.addInputEventListener(new myMouseEventHandler()
+                /*new PBasicInputEventHandler() {
 
                     {
                         PInputEventFilter filter = new PInputEventFilter();
@@ -112,10 +114,12 @@ public class ChordRing extends PFrame {
                         super.mouseEntered(e);
                         if (e.getButton() == MouseEvent.NOBUTTON) {
                             ArrayList fingers = (ArrayList) e.getPickedNode().getAttribute("fingers");
-                            PNode pred = nodeLayer.getChild(hashTable.get(
-                                    e.getPickedNode().getAttribute("predecessor")));
-                            PNode succ = nodeLayer.getChild(hashTable.get(
-                                    e.getPickedNode().getAttribute("successor")));
+                            PNode pred = (PNode) getNodeLayer().getChild(
+                                    getRelationships().get(
+                                    (Long) e.getPickedNode().getAttribute("predecessor")));
+                            PNode succ = (PNode) getNodeLayer().getChild(
+                                    getRelationships().get(
+                                    (Long) e.getPickedNode().getAttribute("successor")));
                             e.getPickedNode().setPaint(Color.GREEN);
                             e.getPickedNode().moveToFront();
                             succ.moveToFront();
@@ -140,7 +144,7 @@ public class ChordRing extends PFrame {
                             for (int i = 0; i < edges.size(); i++) {
                             PPath edge = (PPath) edges.get(i);
                             edge.setVisible(true);
-                            }*/
+                            }
                         }
                     }
 
@@ -149,13 +153,15 @@ public class ChordRing extends PFrame {
                         super.mouseExited(e);
                         if (e.getButton() == MouseEvent.NOBUTTON) {
                             ArrayList fingers = (ArrayList) e.getPickedNode().getAttribute("fingers");
-                            PNode pred = (PNode) nodeLayer.getChild(hashTable.get(
-                                    e.getPickedNode().getAttribute("predecessor")));
-                            PNode succ = (PNode) nodeLayer.getChild(hashTable.get(
-                                    e.getPickedNode().getAttribute("successor")));
+                            PNode pred = (PNode) getNodeLayer().getChild(
+                                    getRelationships().get(
+                                    (Long) e.getPickedNode().getAttribute("predecessor")));
+                            PNode succ = (PNode) getNodeLayer().getChild(
+                                    getRelationships().get(
+                                    (Long) e.getPickedNode().getAttribute("successor")));
+
                             e.getPickedNode().setPaint(Color.WHITE);
                             e.getPickedNode().moveToBack();
-
                             pred.setPaint(Color.WHITE);
                             succ.setPaint(Color.WHITE);
                             /*e.getPickedNode().moveToBack();
@@ -175,10 +181,18 @@ public class ChordRing extends PFrame {
                             for (int i = 0; i < edges.size(); i++) {
                             PPath edge = (PPath) edges.get(i);
                             edge.setVisible(false);
-                            }*/
+                            }
                         }
                     }
-                });
+                }*/);
+    }
+
+    private PLayer getNodeLayer() {
+        return nodeLayer;
+    }
+
+    private Hashtable<Long, Integer> getRelationships() {
+        return hashTable;
     }
 
     private void drawNodes(PLayer nodeLayer) {
@@ -186,9 +200,9 @@ public class ChordRing extends PFrame {
             ChordProtocol cp = (ChordProtocol) Network.get(i).getProtocol(0);
             double angle = getAngle(cp);
             PPath node = nodePosition(angle);
+            nodeLayer.addChild(node);
             hashTable.put(Network.get(i).getID(), i);
             storeInfo(node, cp);
-            nodeLayer.addChild(node);
         }
     }
 
@@ -242,5 +256,58 @@ public class ChordRing extends PFrame {
         path.lineTo(xe - dx2, ye - dy2);
 
         return path;
+    }
+
+    public class myMouseEventHandler extends PBasicInputEventHandler {
+
+        PInputEventFilter filter = new PInputEventFilter();
+
+        public myMouseEventHandler() {
+            filter.setOrMask(InputEvent.BUTTON1_MASK);
+            setEventFilter(filter);
+        }
+
+        @Override
+        public void mouseEntered(PInputEvent e) {
+            super.mouseEntered(e);
+            if (e.getButton() == MouseEvent.NOBUTTON) {
+                PNode pickedNode = e.getPickedNode();
+                ArrayList fingers = (ArrayList) e.getPickedNode().getAttribute("fingers");
+                PNode pred = (PNode) getNodeLayer().getChild(
+                        getRelationships().get(
+                        (Long) pickedNode.getAttribute("predecessor")));
+                PNode succ = (PNode) getNodeLayer().getChild(
+                        getRelationships().get(
+                        (Long) pickedNode.getAttribute("successor")));
+                pickedNode.setPaint(Color.GREEN);
+                pred.setPaint(Color.RED);
+                succ.setPaint(Color.BLUE);
+                pickedNode.moveToFront();
+                succ.moveToFront();
+                pred.moveToFront();
+            }
+        }
+
+        @Override
+        public void mouseExited(PInputEvent e) {
+            super.mouseEntered(e);
+            if (e.getButton() == MouseEvent.NOBUTTON) {
+                PNode pickedNode = e.getPickedNode();
+                ArrayList fingers = (ArrayList) e.getPickedNode().getAttribute("fingers");
+                PNode pred = (PNode) getNodeLayer().getChild((Integer)
+                        getRelationships().get(
+                        (Long) pickedNode.getAttribute("predecessor")));
+                PNode succ = (PNode) getNodeLayer().getChild((Integer)
+                        getRelationships().get(
+                        (Long) pickedNode.getAttribute("successor")));
+                pickedNode.setPaint(Color.WHITE);
+                pred.setPaint(Color.WHITE);
+                succ.setPaint(Color.WHITE);
+                pickedNode.moveToFront();
+                succ.moveToBack();
+                pred.moveToBack();
+                System.out.println("pred: " + pred.getPaint().toString() + "|| white: " + java.awt.Color.WHITE.toString());
+            }
+        }
     }
 }
