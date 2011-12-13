@@ -39,7 +39,7 @@ public class ChordRing extends PFrame {
     int radius = width / 2;
     float cx = margin + radius;
     float cy = margin + radius;
-    Hashtable<Long, Integer> hashTable = new Hashtable<Long, Integer>(NODES);
+    Hashtable<Long, PNode> hashTable = new Hashtable<Long, PNode>(NODES);
     final PCanvas canvas = getCanvas();
     PLayer nodeLayer = canvas.getLayer();
 
@@ -56,7 +56,6 @@ public class ChordRing extends PFrame {
         setSize(SCREEN);
 
         camera = canvas.getCamera();
-
         PLayer edgeLayer = new PLayer();
         canvas.getRoot().addChild(edgeLayer);
         camera.addLayer(0, edgeLayer);
@@ -100,7 +99,7 @@ public class ChordRing extends PFrame {
         }
         }*/
 
-        nodeLayer.addInputEventListener(new myMouseEventHandler()
+        nodeLayer.addInputEventListener(new ChordMouseEventHandler()
                 /*new PBasicInputEventHandler() {
 
                     {
@@ -187,26 +186,24 @@ public class ChordRing extends PFrame {
                 }*/);
     }
 
-    private PLayer getNodeLayer() {
-        return nodeLayer;
-    }
-
-    private Hashtable<Long, Integer> getRelationships() {
+    private Hashtable<Long, PNode> getRelationships() {
         return hashTable;
     }
 
     private void drawNodes(PLayer nodeLayer) {
-        for (int i = 0; i < NODES; i++) {
+        for (int i = 0; i < Network.size(); i++) {
             ChordProtocol cp = (ChordProtocol) Network.get(i).getProtocol(0);
             double angle = getAngle(cp);
             PPath node = nodePosition(angle);
             nodeLayer.addChild(node);
-            hashTable.put(Network.get(i).getID(), i);
             storeInfo(node, cp);
+            hashTable.put(Network.get(i).getID(), node);
         }
     }
 
-    private void storeInfo(PPath node, ChordProtocol cp) {
+    private void storeInfo(PNode node, ChordProtocol cp) {
+        node.addAttribute("drawnLines", false);
+        node.addAttribute("lines", new ArrayList());
         node.addAttribute("predecessor", cp.predecessor.getID());
         node.addAttribute("successor", cp.successorList[0].getID());
         node.addAttribute("fingers", new ArrayList());
@@ -228,6 +225,23 @@ public class ChordRing extends PFrame {
         double degree = ((chordId / maxValue) * 365);
         double radian = degree / 180 * Math.PI;
         return radian;
+    }
+    
+    private void lineVisibility(PNode node, Boolean state){
+        ArrayList lines = (ArrayList) node.getAttribute("lines");
+        int numOfLines = lines.size();
+        for(int i = 0; i < numOfLines; i++){
+            ((PPath) lines.get(i)).setVisible(state);
+        }
+    }
+    
+    private void drawLines(PNode node){
+        drawLine(node, (PNode)node.getAttribute("predecessor"));
+        drawLine(node, (PNode)node.getAttribute("successor"));
+    }
+    
+    private void drawLine(PNode start, PNode end){
+        
     }
 
     private Shape createArrow(Point2D start, Point2D end) {
@@ -258,11 +272,13 @@ public class ChordRing extends PFrame {
         return path;
     }
 
-    public class myMouseEventHandler extends PBasicInputEventHandler {
+    public class ChordMouseEventHandler extends PBasicInputEventHandler {
 
         PInputEventFilter filter = new PInputEventFilter();
-
-        public myMouseEventHandler() {
+        PNode pred;
+        PNode succ;
+        ArrayList fingers;
+        public ChordMouseEventHandler() {
             filter.setOrMask(InputEvent.BUTTON1_MASK);
             setEventFilter(filter);
         }
@@ -271,42 +287,34 @@ public class ChordRing extends PFrame {
         public void mouseEntered(PInputEvent e) {
             super.mouseEntered(e);
             if (e.getButton() == MouseEvent.NOBUTTON) {
-                PNode pickedNode = e.getPickedNode();
-                ArrayList fingers = (ArrayList) e.getPickedNode().getAttribute("fingers");
-                PNode pred = (PNode) getNodeLayer().getChild(
-                        getRelationships().get(
-                        (Long) pickedNode.getAttribute("predecessor")));
-                PNode succ = (PNode) getNodeLayer().getChild(
-                        getRelationships().get(
-                        (Long) pickedNode.getAttribute("successor")));
-                pickedNode.setPaint(Color.GREEN);
+                fingers = (ArrayList) e.getPickedNode().getAttribute("fingers");
+                pred = (PNode) getRelationships().get((Long)e.getPickedNode().getAttribute("predecessor"));
+                succ = (PNode) getRelationships().get((Long)e.getPickedNode().getAttribute("successor"));
+                e.getPickedNode().setPaint(Color.GREEN);
                 pred.setPaint(Color.RED);
                 succ.setPaint(Color.BLUE);
-                pickedNode.moveToFront();
+                e.getPickedNode().moveToFront();
                 succ.moveToFront();
                 pred.moveToFront();
+                if((Boolean)e.getPickedNode().getAttribute("drawnLines")){
+                    lineVisibility(e.getPickedNode(), true);
+                } else {
+                    
+                }
             }
         }
 
         @Override
         public void mouseExited(PInputEvent e) {
-            super.mouseEntered(e);
+            super.mouseExited(e);
             if (e.getButton() == MouseEvent.NOBUTTON) {
-                PNode pickedNode = e.getPickedNode();
-                ArrayList fingers = (ArrayList) e.getPickedNode().getAttribute("fingers");
-                PNode pred = (PNode) getNodeLayer().getChild((Integer)
-                        getRelationships().get(
-                        (Long) pickedNode.getAttribute("predecessor")));
-                PNode succ = (PNode) getNodeLayer().getChild((Integer)
-                        getRelationships().get(
-                        (Long) pickedNode.getAttribute("successor")));
-                pickedNode.setPaint(Color.WHITE);
+                e.getPickedNode().setPaint(Color.WHITE);
                 pred.setPaint(Color.WHITE);
                 succ.setPaint(Color.WHITE);
-                pickedNode.moveToFront();
+                e.getPickedNode().moveToFront();
                 succ.moveToBack();
                 pred.moveToBack();
-                System.out.println("pred: " + pred.getPaint().toString() + "|| white: " + java.awt.Color.WHITE.toString());
+                lineVisibility(e.getPickedNode(), false);
             }
         }
     }
