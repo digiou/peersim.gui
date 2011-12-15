@@ -10,6 +10,7 @@ import edu.umd.cs.piccolo.event.PInputEventFilter;
 import edu.umd.cs.piccolo.nodes.PPath;
 import edu.umd.cs.piccolox.PFrame;
 import edu.umd.cs.piccolox.pswing.PSwingCanvas;
+import edu.umd.cs.piccolox.util.PFixedWidthStroke;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.InputEvent;
@@ -55,128 +56,7 @@ public class ChordRing extends PFrame {
         camera.addLayer(0, edgeLayer);
 
         drawNodes(nodeLayer);
-        /*Point2D center = new Point2D.Double((float) (SCREEN.width / 2), (float) SCREEN.height);
-        ArrayList<Point2D> circlePoints = circlePoints(center, (float) SCREEN.height / 2);
-        
-        for (int i = 0;i < NODES;i++) {
-        Point2D point = circlePoints.get(i);
-        PPath node = PPath.createEllipse((float) point.getX(), (float) point.getY(), 16, 16);
-        node.addAttribute("edges", new ArrayList());
-        node.addAttribute("prevPeers", new ArrayList());
-        node.addAttribute("nextPeers", new ArrayList());
-        nodeLayer.addChild(node);
-        }
-        
-        for (int i = 0;i < NODES;i++) {
-        int n1 = i;
-        Linkable p = (Linkable) Network.get(i).getProtocol(1);
-        for (int j = 0; j < p.degree(); j++) {
-        int n2 = p.getNeighbor(j).getIndex();
-        
-        PNode node1 = nodeLayer.getChild(n1);
-        PNode node2 = nodeLayer.getChild(n2);
-        Point2D start = node1.getFullBoundsReference().getCenter2D();
-        Point2D end = node2.getFullBoundsReference().getCenter2D();
-        ((ArrayList) node1.getAttribute("nextPeers")).add(node2);
-        ((ArrayList) node2.getAttribute("prevPeers")).add(node1);
-        PPath edge = new PPath(createArrow(new Point2D.Double(start.getX(), start.getY()),
-        new Point2D.Double(end.getX(), end.getY())));
-        
-        
-        ((ArrayList) node1.getAttribute("edges")).add(edge);
-        ((ArrayList) node2.getAttribute("edges")).add(edge);
-        edge.addAttribute("nodes", new ArrayList());
-        ((ArrayList) edge.getAttribute("nodes")).add(node1);
-        ((ArrayList) edge.getAttribute("nodes")).add(node2);
-        edge.setVisible(false);
-        edgeLayer.addChild(edge);
-        }
-        }*/
-
-        nodeLayer.addInputEventListener(new ChordMouseEventHandler() /*new PBasicInputEventHandler() {
-                
-                {
-                PInputEventFilter filter = new PInputEventFilter();
-                filter.setOrMask(InputEvent.BUTTON1_MASK);
-                setEventFilter(filter);
-                }
-                
-                @Override
-                public void mouseEntered(PInputEvent e) {
-                super.mouseEntered(e);
-                if (e.getButton() == MouseEvent.NOBUTTON) {
-                ArrayList fingers = (ArrayList) e.getPickedNode().getAttribute("fingers");
-                PNode pred = (PNode) getNodeLayer().getChild(
-                getRelationships().get(
-                (Long) e.getPickedNode().getAttribute("predecessor")));
-                PNode succ = (PNode) getNodeLayer().getChild(
-                getRelationships().get(
-                (Long) e.getPickedNode().getAttribute("successor")));
-                e.getPickedNode().setPaint(Color.GREEN);
-                e.getPickedNode().moveToFront();
-                succ.moveToFront();
-                pred.moveToFront();
-                
-                pred.setPaint(Color.RED);
-                succ.setPaint(Color.BLUE);
-                /*e.getPickedNode().moveToFront();
-                ArrayList prevPeers = (ArrayList) e.getPickedNode().getAttribute("prevPeers");
-                ArrayList nextPeers = (ArrayList) e.getPickedNode().getAttribute("nextPeers");
-                ArrayList edges = (ArrayList) e.getPickedNode().getAttribute("edges");
-                for (int i = 0; i < prevPeers.size(); i++) {
-                PNode prevNode = (PNode) prevPeers.get(i);
-                prevNode.setPaint(Color.RED);
-                prevNode.moveToFront();
-                }
-                for (int i = 0; i < nextPeers.size(); i++) {
-                PNode nextNode = (PNode) nextPeers.get(i);
-                nextNode.setPaint(Color.BLUE);
-                nextNode.moveToFront();
-                }
-                for (int i = 0; i < edges.size(); i++) {
-                PPath edge = (PPath) edges.get(i);
-                edge.setVisible(true);
-                }
-                }
-                }
-                
-                @Override
-                public void mouseExited(PInputEvent e) {
-                super.mouseExited(e);
-                if (e.getButton() == MouseEvent.NOBUTTON) {
-                ArrayList fingers = (ArrayList) e.getPickedNode().getAttribute("fingers");
-                PNode pred = (PNode) getNodeLayer().getChild(
-                getRelationships().get(
-                (Long) e.getPickedNode().getAttribute("predecessor")));
-                PNode succ = (PNode) getNodeLayer().getChild(
-                getRelationships().get(
-                (Long) e.getPickedNode().getAttribute("successor")));
-                
-                e.getPickedNode().setPaint(Color.WHITE);
-                e.getPickedNode().moveToBack();
-                pred.setPaint(Color.WHITE);
-                succ.setPaint(Color.WHITE);
-                /*e.getPickedNode().moveToBack();
-                ArrayList prevPeers = (ArrayList) e.getPickedNode().getAttribute("prevPeers");
-                ArrayList nextPeers = (ArrayList) e.getPickedNode().getAttribute("nextPeers");
-                ArrayList edges = (ArrayList) e.getPickedNode().getAttribute("edges");
-                for (int i = 0; i < prevPeers.size(); i++) {
-                PNode prevNode = (PNode) prevPeers.get(i);
-                prevNode.setPaint(Color.WHITE);
-                prevNode.moveToBack();
-                }
-                for (int i = 0; i < nextPeers.size(); i++) {
-                PNode nextNode = (PNode) nextPeers.get(i);
-                nextNode.setPaint(Color.WHITE);
-                nextNode.moveToBack();
-                }
-                for (int i = 0; i < edges.size(); i++) {
-                PPath edge = (PPath) edges.get(i);
-                edge.setVisible(false);
-                }
-                }
-                }
-                }*/);
+        nodeLayer.addInputEventListener(new ChordMouseEventHandler());
     }
 
     private Hashtable<Long, PNode> getRelationships() {
@@ -188,6 +68,7 @@ public class ChordRing extends PFrame {
             ChordProtocol cp = (ChordProtocol) Network.get(i).getProtocol(0);
             double angle = getAngle(cp);
             PPath node = nodePosition(angle);
+            node.setStroke(new PFixedWidthStroke());
             nodeLayer.addChild(node);
             storeInfo(node, cp);
             hashTable.put(Network.get(i).getID(), node);
@@ -219,11 +100,13 @@ public class ChordRing extends PFrame {
     }
 
     private PPath drawLine(PNode start, PNode end) {
-        return PPath.createLine(
+        PPath line = PPath.createLine(
                 (float) start.getFullBoundsReference().getCenter2D().getX(),
                 (float) start.getFullBoundsReference().getCenter2D().getY(),
                 (float) end.getFullBoundsReference().getCenter2D().getX(),
                 (float) end.getFullBoundsReference().getCenter2D().getY());
+        line.setStroke(new PFixedWidthStroke());
+        return line;
     }
 
     public class ChordMouseEventHandler extends PBasicInputEventHandler {
@@ -232,6 +115,8 @@ public class ChordRing extends PFrame {
         ArrayList lines = new ArrayList();
         Boolean selectedSomething = false;
         PNode something;
+        PNode pred, succ;
+        ArrayList fingerNodes;
 
         public ChordMouseEventHandler() {
             filter.setOrMask(InputEvent.BUTTON1_MASK);
@@ -242,20 +127,25 @@ public class ChordRing extends PFrame {
         public void mouseEntered(PInputEvent e) {
             super.mouseEntered(e);
             if (e.getButton() == MouseEvent.NOBUTTON) {
-                PNode pred = (PNode) getRelationships().get((Long) e.getPickedNode().getAttribute("predecessor"));
-                PNode succ = (PNode) getRelationships().get((Long) e.getPickedNode().getAttribute("successor"));
-                ArrayList fingers = (ArrayList) e.getPickedNode().getAttribute("fingers");
+                pred = (PNode) getRelationships().get((Long) e.getPickedNode().getAttribute("predecessor"));
+                succ = (PNode) getRelationships().get((Long) e.getPickedNode().getAttribute("successor"));
+                ArrayList fingerID = (ArrayList) e.getPickedNode().getAttribute("fingers");
+                fingerNodes = new ArrayList();
+                
+                lines.add(drawLine(e.getPickedNode(), pred));
+                lines.add(drawLine(e.getPickedNode(), succ));
+                for (int i = 0; i < fingerID.size(); i++) {
+                    fingerNodes.add(getRelationships().get((Long) fingerID.get(i)));
+                    ((PNode)fingerNodes.get(i)).setPaint(Color.YELLOW);
+                    ((PNode)fingerNodes.get(i)).moveToFront();
+                    lines.add(drawLine(e.getPickedNode(), (PNode) fingerNodes.get(i)));
+                }
                 e.getPickedNode().setPaint(Color.GREEN);
                 pred.setPaint(Color.RED);
                 succ.setPaint(Color.BLUE);
                 e.getPickedNode().moveToFront();
                 succ.moveToFront();
                 pred.moveToFront();
-                lines.add(drawLine(e.getPickedNode(), pred));
-                lines.add(drawLine(e.getPickedNode(), succ));
-                for (int i = 0; i < fingers.size(); i++) {
-                    lines.add(drawLine(e.getPickedNode(), (PNode) getRelationships().get((Long) fingers.get(i))));
-                }
                 edgeLayer.addChildren(lines);
             }
         }
@@ -284,15 +174,20 @@ public class ChordRing extends PFrame {
         public void mouseExited(PInputEvent e) {
             super.mouseExited(e);
             if (e.getButton() == MouseEvent.NOBUTTON) {
-                PNode pred = (PNode) getRelationships().get((Long) e.getPickedNode().getAttribute("predecessor"));
-                PNode succ = (PNode) getRelationships().get((Long) e.getPickedNode().getAttribute("successor"));
+                //PNode pred = (PNode) getRelationships().get((Long) e.getPickedNode().getAttribute("predecessor"));
+                //PNode succ = (PNode) getRelationships().get((Long) e.getPickedNode().getAttribute("successor"));
                 e.getPickedNode().setPaint(Color.WHITE);
                 pred.setPaint(Color.WHITE);
                 succ.setPaint(Color.WHITE);
-                e.getPickedNode().moveToFront();
+                e.getPickedNode().moveToBack();
                 succ.moveToBack();
                 pred.moveToBack();
                 edgeLayer.removeChildren(lines);
+                int fingersSize = fingerNodes.size();
+                for(int i=0;i<fingersSize;i++){
+                    ((PNode)fingerNodes.get(i)).setPaint(Color.WHITE);
+                    ((PNode)fingerNodes.get(i)).moveToBack();
+                }
                 int linesSize = lines.size();
                 for (int i = 0; i < linesSize; i++) {
                     lines.remove(0);
