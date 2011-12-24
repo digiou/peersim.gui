@@ -23,7 +23,6 @@ import java.util.Hashtable;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
-import javax.swing.JTextPane;
 import peersim.chord.ChordProtocol;
 import peersim.core.Network;
 
@@ -62,9 +61,10 @@ public class ChordRing extends PFrame {
         camera = canvas.getCamera();
         canvas.getRoot().addChild(edgeLayer);
         camera.addLayer(0, edgeLayer);
-        
+
         findChordProtocol();
         drawNodes(nodeLayer);
+
         nodeLayer.addInputEventListener(new ChordMouseEventHandler());
         nodeLayer.addInputEventListener(new TooltipHandler());
     }
@@ -72,10 +72,10 @@ public class ChordRing extends PFrame {
     private Hashtable<Long, PNode> getRelationships() {
         return hashTable;
     }
-    
-    private void findChordProtocol(){
-        for(int i=0;i<Network.get(0).protocolSize();i++){
-            if(Network.get(0).getProtocol(i).getClass() == ChordProtocol.class){
+
+    private void findChordProtocol() {
+        for (int i = 0; i < Network.get(0).protocolSize(); i++) {
+            if (Network.get(0).getProtocol(i).getClass() == ChordProtocol.class) {
                 chordPosition = i;
                 break;
             }
@@ -121,37 +121,47 @@ public class ChordRing extends PFrame {
     }
 
     private PPath drawLine(PNode start, PNode end) {
-        PPath line = PPath.createLine(
-                (float) start.getFullBoundsReference().getCenter2D().getX(),
+        PPath line = PPath.createLine((float) start.getFullBoundsReference().getCenter2D().getX(),
                 (float) start.getFullBoundsReference().getCenter2D().getY(),
                 (float) end.getFullBoundsReference().getCenter2D().getX(),
                 (float) end.getFullBoundsReference().getCenter2D().getY());
+
+        return line;
+    }
+    // XXX todo, dammit Bezier
+
+    private PPath drawCurvedLine(PNode start, PNode end) {
+        Point2D centerStart = start.getFullBoundsReference().getCenter2D();
+        Point2D centerEnd = end.getFullBoundsReference().getCenter2D();
+        PPath line = new PPath();
+        line.moveTo((float) centerStart.getX(), (float) centerStart.getY());
+        line.curveTo(cx, cy, cx, cy, (float) centerEnd.getX(), (float) centerEnd.getY());
         line.setStroke(new PFixedWidthStroke());
         return line;
     }
-    
-    public String tooltipText(PNode aNode){
+
+    public String tooltipText(PNode aNode) {
         String tooltipText;
         String chordId = (String) aNode.getAttribute("chordId");
         tooltipText = "Node ID#: " + chordId + "\n";
         /*String predChordId = (String) ((PNode) getRelationships().get(
-                (Long)aNode.getAttribute("predecessor"))
-                ).getAttribute("chordId");
+        (Long)aNode.getAttribute("predecessor"))
+        ).getAttribute("chordId");
         tooltipText = tooltipText.concat("Pred ID#: " + predChordId + "\n");
         String succChordId = (String) ((PNode) getRelationships().get(
-                (Long)aNode.getAttribute("successor"))
-                ).getAttribute("chordId");
+        (Long)aNode.getAttribute("successor"))
+        ).getAttribute("chordId");
         tooltipText = tooltipText.concat("Succ ID#: " + succChordId + "\n");
         ArrayList fingers = (ArrayList) aNode.getAttribute("fingers");
         for(int i=0;i<fingers.size();i++){
-            String fingerId = (String) ((PNode) getRelationships().get(
-                (Long)fingers.get(i))
-                ).getAttribute("chordId");
-            if(i == fingers.size()-1){
-                tooltipText = tooltipText.concat("Finger " + i + " ID#: " + fingerId);
-            } else {
-                tooltipText = tooltipText.concat("Finger " + i + " ID#: " + fingerId + "\n");
-            }
+        String fingerId = (String) ((PNode) getRelationships().get(
+        (Long)fingers.get(i))
+        ).getAttribute("chordId");
+        if(i == fingers.size()-1){
+        tooltipText = tooltipText.concat("Finger " + i + " ID#: " + fingerId);
+        } else {
+        tooltipText = tooltipText.concat("Finger " + i + " ID#: " + fingerId + "\n");
+        }
         }
         System.out.println(tooltipText);*/
         return tooltipText;
@@ -161,7 +171,7 @@ public class ChordRing extends PFrame {
 
         PInputEventFilter filter = new PInputEventFilter();
         ArrayList lines = new ArrayList();
-        Boolean selectedSomething = false;
+        Boolean selectedSomething = true;
         PNode something;
         PNode pred, succ;
         ArrayList fingerNodes;
@@ -178,15 +188,14 @@ public class ChordRing extends PFrame {
                 pred = (PNode) getRelationships().get((Long) e.getPickedNode().getAttribute("predecessor"));
                 succ = (PNode) getRelationships().get((Long) e.getPickedNode().getAttribute("successor"));
                 ArrayList fingerID = (ArrayList) e.getPickedNode().getAttribute("fingers");
-                System.out.println(fingerID.size());
                 fingerNodes = new ArrayList();
-                
+
                 lines.add(drawLine(e.getPickedNode(), pred));
                 lines.add(drawLine(e.getPickedNode(), succ));
                 for (int i = 0; i < fingerID.size(); i++) {
                     fingerNodes.add(getRelationships().get((Long) fingerID.get(i)));
-                    ((PNode)fingerNodes.get(i)).setPaint(Color.YELLOW);
-                    ((PNode)fingerNodes.get(i)).moveToFront();
+                    ((PNode) fingerNodes.get(i)).setPaint(Color.YELLOW);
+                    ((PNode) fingerNodes.get(i)).moveToFront();
                     lines.add(drawLine(e.getPickedNode(), (PNode) fingerNodes.get(i)));
                 }
                 e.getPickedNode().setPaint(Color.GREEN);
@@ -203,18 +212,75 @@ public class ChordRing extends PFrame {
         public void mouseClicked(PInputEvent e) {
             super.mouseClicked(e);
             if (e.getButton() == MouseEvent.BUTTON1) {
-                selectedSomething = !selectedSomething;
                 if (selectedSomething) {
                     something = e.getPickedNode();
                     filter.setAcceptsMouseExited(false);
                     filter.setAcceptsMouseEntered(false);
-                    //e.getPickedNode().removeInputEventListener(this);
+                    selectedSomething = false;
                 } else {
-                    if(something.equals(e.getPickedNode())){
+                    if (something.equals(e.getPickedNode())) {
                         filter.setAcceptsMouseExited(true);
                         filter.setAcceptsMouseEntered(true);
+                        selectedSomething = true;
+
+                        e.getPickedNode().setPaint(Color.WHITE);
+                        pred.setPaint(Color.WHITE);
+                        succ.setPaint(Color.WHITE);
+                        e.getPickedNode().moveToBack();
+                        succ.moveToBack();
+                        pred.moveToBack();
+                        edgeLayer.removeChildren(lines);
+                        int fingersSize = fingerNodes.size();
+                        for (int i = 0; i < fingersSize; i++) {
+                            ((PNode) fingerNodes.get(i)).setPaint(Color.WHITE);
+                            ((PNode) fingerNodes.get(i)).moveToBack();
+                        }
+                        int linesSize = lines.size();
+                        for (int i = 0; i < linesSize; i++) {
+                            lines.remove(0);
+                        }
                     } else {
-                        selectedSomething = !selectedSomething;
+                        something.setPaint(Color.WHITE);
+                        pred.setPaint(Color.WHITE);
+                        succ.setPaint(Color.WHITE);
+                        something.moveToBack();
+                        succ.moveToBack();
+                        pred.moveToBack();
+                        edgeLayer.removeChildren(lines);
+                        int fingersSize = fingerNodes.size();
+                        for (int i = 0; i < fingersSize; i++) {
+                            ((PNode) fingerNodes.get(i)).setPaint(Color.WHITE);
+                            ((PNode) fingerNodes.get(i)).moveToBack();
+                        }
+                        int linesSize = lines.size();
+                        for (int i = 0; i < linesSize; i++) {
+                            lines.remove(0);
+                        }
+
+                        selectedSomething = false;
+
+                        pred = (PNode) getRelationships().get((Long) e.getPickedNode().getAttribute("predecessor"));
+                        succ = (PNode) getRelationships().get((Long) e.getPickedNode().getAttribute("successor"));
+                        ArrayList fingerID = (ArrayList) e.getPickedNode().getAttribute("fingers");
+                        fingerNodes = new ArrayList();
+
+                        lines.add(drawLine(e.getPickedNode(), pred));
+                        lines.add(drawLine(e.getPickedNode(), succ));
+                        for (int i = 0; i < fingerID.size(); i++) {
+                            fingerNodes.add(getRelationships().get((Long) fingerID.get(i)));
+                            ((PNode) fingerNodes.get(i)).setPaint(Color.YELLOW);
+                            ((PNode) fingerNodes.get(i)).moveToFront();
+                            lines.add(drawLine(e.getPickedNode(), (PNode) fingerNodes.get(i)));
+                        }
+                        e.getPickedNode().setPaint(Color.GREEN);
+                        pred.setPaint(Color.RED);
+                        succ.setPaint(Color.BLUE);
+                        succ.moveToFront();
+                        pred.moveToFront();
+                        e.getPickedNode().moveToFront();
+                        edgeLayer.addChildren(lines);
+                        
+                        something = e.getPickedNode();
                     }
                 }
             }
@@ -234,9 +300,9 @@ public class ChordRing extends PFrame {
                 pred.moveToBack();
                 edgeLayer.removeChildren(lines);
                 int fingersSize = fingerNodes.size();
-                for(int i=0;i<fingersSize;i++){
-                    ((PNode)fingerNodes.get(i)).setPaint(Color.WHITE);
-                    ((PNode)fingerNodes.get(i)).moveToBack();
+                for (int i = 0; i < fingersSize; i++) {
+                    ((PNode) fingerNodes.get(i)).setPaint(Color.WHITE);
+                    ((PNode) fingerNodes.get(i)).moveToBack();
                 }
                 int linesSize = lines.size();
                 for (int i = 0; i < linesSize; i++) {
@@ -245,14 +311,15 @@ public class ChordRing extends PFrame {
             }
         }
     }
-    
-    private class TooltipHandler extends PBasicInputEventHandler{
+
+    private class TooltipHandler extends PBasicInputEventHandler {
+
         PSwing tooltip;
         JPanel panel = new JPanel(new BorderLayout());
         JTextArea textArea = new JTextArea();
         JLabel label = new JLabel();
-        
-        public TooltipHandler(){
+
+        public TooltipHandler() {
             //textArea.setEditable(false);
             //panel.add(textArea, BorderLayout.CENTER);
             panel.add(label, BorderLayout.CENTER);
@@ -261,9 +328,9 @@ public class ChordRing extends PFrame {
             tooltip.setPickable(false);
             nodeLayer.addChild(tooltip);
         }
-        
+
         @Override
-        public void mouseEntered(PInputEvent e){
+        public void mouseEntered(PInputEvent e) {
             PNode node = e.getPickedNode();
             String text = tooltipText(node);
             //textArea.setText(text);
@@ -271,21 +338,21 @@ public class ChordRing extends PFrame {
             tooltip.setVisible(true);
             tooltip.moveToFront();
         }
-        
+
         @Override
-        public void mouseMoved(PInputEvent e){
-            if(tooltip.getVisible()){
+        public void mouseMoved(PInputEvent e) {
+            if (tooltip.getVisible()) {
                 PNode picked = e.getPickedNode();
                 Point2D point = e.getPositionRelativeTo(picked);
                 picked.localToParent(point);
-                point.setLocation(point.getX()+10, point.getY()+15);
+                point.setLocation(point.getX() + 10, point.getY() + 15);
                 tooltip.setOffset(point);
             }
         }
-        
+
         @Override
-        public void mouseExited(PInputEvent e){
-             tooltip.setVisible(false);
+        public void mouseExited(PInputEvent e) {
+            tooltip.setVisible(false);
         }
     }
 }
