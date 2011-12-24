@@ -18,6 +18,7 @@ import java.awt.Dimension;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import javax.swing.JLabel;
@@ -103,7 +104,7 @@ public class ChordRing extends PFrame {
         for (int i = 0; i < SIZE; i++) {
             ((ArrayList) node.getAttribute("fingers")).add(cp.fingerTable[i].getID());
         }
-        node.addAttribute("chordId", cp.chordId.toString());
+        node.addAttribute("chordId", cp.chordId);
     }
 
     private PPath nodePosition(double angle) {
@@ -142,7 +143,7 @@ public class ChordRing extends PFrame {
 
     public String tooltipText(PNode aNode) {
         String tooltipText;
-        String chordId = (String) aNode.getAttribute("chordId");
+        String chordId = ((BigInteger) aNode.getAttribute("chordId")).toString(16);
         tooltipText = "Node ID#: " + chordId + "\n";
         /*String predChordId = (String) ((PNode) getRelationships().get(
         (Long)aNode.getAttribute("predecessor"))
