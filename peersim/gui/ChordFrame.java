@@ -6,6 +6,7 @@ package peersim.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Frame;
+import javax.swing.JButton;
 import javax.swing.JFrame;
 
 /**
@@ -19,6 +20,7 @@ public class ChordFrame extends JFrame{
         this.setLayout(new BorderLayout());
         this.setExtendedState(Frame.MAXIMIZED_BOTH);
         this.add(new ChordCanvas(), BorderLayout.CENTER);
+        this.add(new InfoPanel(), BorderLayout.WEST);
         this.pack();
         this.setVisible(true);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
