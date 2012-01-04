@@ -179,7 +179,7 @@ public class Simulator {
                         break;
                 }
                 // XXX call to GUI constructors, for faster access
-                ChordRing ring = new ChordRing();
+                ChordFrame chordMainWindow = new ChordFrame();
             }
 
         } catch (MissingParameterException e) {
