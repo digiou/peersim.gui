@@ -47,10 +47,12 @@ public class ChordCanvas extends PCanvas{
     Hashtable<Long, PNode> hashTable = new Hashtable<Long, PNode>(NODES);
     PLayer nodeLayer = this.getLayer();
     PLayer edgeLayer = new PLayer();
+    InfoPanel panel;
     
-    public ChordCanvas() {
+    public ChordCanvas(InfoPanel inheritedPanel) {
         super();
         setSize(SCREEN);
+        this.panel = inheritedPanel;
         camera = this.getCamera();
         this.getRoot().addChild(edgeLayer);
         camera.addLayer(0, edgeLayer);
@@ -327,6 +329,7 @@ public class ChordCanvas extends PCanvas{
         @Override
         public void mouseEntered(PInputEvent e) {
             PNode node = e.getPickedNode();
+            //panel.setNodeId(((BigInteger)e.getPickedNode().getAttribute("chordId")).toString(16));
             tooltipNode.setText(tooltipText(node));
             tooltipNode.setVisible(true);
         }

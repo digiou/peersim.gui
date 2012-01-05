@@ -19,8 +19,9 @@ public class ChordFrame extends JFrame{
         super("Chord Viz");
         this.setLayout(new BorderLayout());
         this.setExtendedState(Frame.MAXIMIZED_BOTH);
-        this.add(new ChordCanvas(), BorderLayout.CENTER);
-        this.add(new InfoPanel(), BorderLayout.WEST);
+        InfoPanel infoPanel = new InfoPanel();
+        this.add(infoPanel, BorderLayout.WEST);
+        this.add(new ChordCanvas(infoPanel), BorderLayout.CENTER);
         this.pack();
         this.setVisible(true);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
