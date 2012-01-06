@@ -6,7 +6,6 @@ package peersim.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Frame;
-import javax.swing.JButton;
 import javax.swing.JFrame;
 
 /**

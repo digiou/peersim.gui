@@ -329,7 +329,9 @@ public class ChordCanvas extends PCanvas{
         @Override
         public void mouseEntered(PInputEvent e) {
             PNode node = e.getPickedNode();
-            //panel.setNodeId(((BigInteger)e.getPickedNode().getAttribute("chordId")).toString(16));
+            panel.setNodeId(((BigInteger)e.getPickedNode().getAttribute("chordId")).toString(16));
+            panel.setPredId("predId goes here, bitches");
+            panel.setSuccId("SuccId goes here too, suckas");
             tooltipNode.setText(tooltipText(node));
             tooltipNode.setVisible(true);
         }
@@ -347,6 +349,7 @@ public class ChordCanvas extends PCanvas{
 
         @Override
         public void mouseExited(PInputEvent e) {
+            panel.resetPanel();
             tooltipNode.setVisible(false);
         }
     }
