@@ -16,6 +16,7 @@ public class InfoPanel extends JPanel{
     private JLabel PredId = new JLabel("Predecessor node Id");
     private JLabel SuccId = new JLabel("Succesor node Id");
     private JLabel FingId = new JLabel("Finger node Id");
+    private JPanel NodePanel = new JPanel();
     private JPanel PredPanel = new JPanel();
     private JPanel SuccPanel = new JPanel();
     private JPanel FingPanel = new JPanel();
@@ -24,17 +25,18 @@ public class InfoPanel extends JPanel{
     public InfoPanel(){
         super();
         setLayout(new GridLayout(0,1));
-        add(NodeId);
-        
         originalColor = PredPanel.getBackground();
+        
+        NodePanel.add(NodeId);
+        add(NodePanel);
         
         PredPanel.add(PredId);
         add(PredPanel);
         
-        
         SuccPanel.add(SuccId);
         add(SuccPanel);
         
+        FingPanel.setLayout(new GridLayout(0,1));
         FingPanel.setBackground(Color.YELLOW);
         FingPanel.add(FingId);
         add(FingPanel);
@@ -58,8 +60,9 @@ public class InfoPanel extends JPanel{
     }
     
     public void addFingersToPanel(int fingers){
+        SuccPanel.remove(FingId);
         for(int i = 0;i<fingers;i++){
-            FingPanel.add(new JLabel("Finger node Id"));
+            FingPanel.add(new JLabel("Finger node Id" + i));
         }
     }
     
@@ -79,10 +82,16 @@ public class InfoPanel extends JPanel{
         SuccId.setText("Successor node Id");
     }
     
+    public void resetFingPanel(){
+        FingPanel.removeAll();
+        FingPanel.add(FingId);
+    }
+    
     public void resetPanel(){
         resetNodeId();
         resetPredId();
         resetSuccId();
+        resetFingPanel();
     }
     
 }

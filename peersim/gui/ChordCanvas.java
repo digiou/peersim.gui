@@ -172,6 +172,17 @@ public class ChordCanvas extends PCanvas{
         tooltipText = "Node ID#: " + chordId + "\n";
         return tooltipText;
     }
+    
+    private void giveInfoToPanel(PNode thisNode, PNode succ, PNode pred, ArrayList<BigInteger> arraylist){
+        panel.setNodeId(((BigInteger)thisNode.getAttribute("chordId")).toString(16));
+        panel.setPredId(((BigInteger)pred.getAttribute("chordId")).toString(16));
+        panel.setSuccId(((BigInteger)succ.getAttribute("chordId")).toString(16));
+        panel.addFingersToPanel(arraylist.size());
+    }
+    
+    private void removeInfoFromPanel(){
+        panel.resetPanel();
+    }
 
     public class ChordMouseEventHandler extends PBasicInputEventHandler {
 
@@ -223,6 +234,7 @@ public class ChordCanvas extends PCanvas{
                     filter.setAcceptsMouseExited(false);
                     filter.setAcceptsMouseEntered(false);
                     selectedSomething = false;
+                    giveInfoToPanel(e.getPickedNode(), succ, pred, fingerNodes);
                 } else {
                     if (something.equals(e.getPickedNode())) {
                         filter.setAcceptsMouseExited(true);
@@ -245,6 +257,7 @@ public class ChordCanvas extends PCanvas{
                         for (int i = 0; i < linesSize; i++) {
                             lines.remove(0);
                         }
+                        removeInfoFromPanel();
                     } else {
                         something.setPaint(Color.WHITE);
                         pred.setPaint(Color.WHITE);
@@ -287,6 +300,7 @@ public class ChordCanvas extends PCanvas{
                         edgeLayer.addChildren(lines);
                         
                         something = e.getPickedNode();
+                        giveInfoToPanel(e.getPickedNode(), succ, pred, fingerNodes);
                     }
                 }
             }
@@ -329,9 +343,6 @@ public class ChordCanvas extends PCanvas{
         @Override
         public void mouseEntered(PInputEvent e) {
             PNode node = e.getPickedNode();
-            panel.setNodeId(((BigInteger)e.getPickedNode().getAttribute("chordId")).toString(16));
-            panel.setPredId("predId goes here, bitches");
-            panel.setSuccId("SuccId goes here too, suckas");
             tooltipNode.setText(tooltipText(node));
             tooltipNode.setVisible(true);
         }
@@ -349,7 +360,6 @@ public class ChordCanvas extends PCanvas{
 
         @Override
         public void mouseExited(PInputEvent e) {
-            panel.resetPanel();
             tooltipNode.setVisible(false);
         }
     }
