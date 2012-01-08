@@ -173,11 +173,11 @@ public class ChordCanvas extends PCanvas{
         return tooltipText;
     }
     
-    private void giveInfoToPanel(PNode thisNode, PNode succ, PNode pred, ArrayList<BigInteger> arraylist){
+    private void giveInfoToPanel(PNode thisNode, PNode succ, PNode pred, ArrayList<PNode> arraylist){
         panel.setNodeId(((BigInteger)thisNode.getAttribute("chordId")).toString(16));
         panel.setPredId(((BigInteger)pred.getAttribute("chordId")).toString(16));
         panel.setSuccId(((BigInteger)succ.getAttribute("chordId")).toString(16));
-        panel.addFingersToPanel(arraylist.size());
+        panel.addFingersToPanel(arraylist);
     }
     
     private void removeInfoFromPanel(){

@@ -1,8 +1,11 @@
 
 package peersim.gui;
 
+import edu.umd.cs.piccolo.PNode;
 import java.awt.Color;
 import java.awt.GridLayout;
+import java.math.BigInteger;
+import java.util.ArrayList;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
@@ -35,9 +38,7 @@ public class InfoPanel extends JPanel{
         
         SuccPanel.add(SuccId);
         add(SuccPanel);
-        
         FingPanel.setLayout(new GridLayout(0,1));
-        FingPanel.setBackground(Color.YELLOW);
         FingPanel.add(FingId);
         add(FingPanel);
         setVisible(true);
@@ -47,27 +48,14 @@ public class InfoPanel extends JPanel{
         NodeId.setText(newID);
     }
     
+    public void resetNodeId(){
+        NodeId.setText("Current node Id");
+    }
+    
     public void setPredId(String newID){
         PredPanel.setBackground(Color.RED);
         PredId.setForeground(Color.WHITE);
         PredId.setText(newID);
-    }
-    
-    public void setSuccId(String newID){
-        SuccPanel.setBackground(Color.BLUE);
-        SuccId.setForeground(Color.WHITE);
-        SuccId.setText(newID);
-    }
-    
-    public void addFingersToPanel(int fingers){
-        SuccPanel.remove(FingId);
-        for(int i = 0;i<fingers;i++){
-            FingPanel.add(new JLabel("Finger node Id" + i));
-        }
-    }
-    
-    public void resetNodeId(){
-        NodeId.setText("Current node Id");
     }
     
     public void resetPredId(){
@@ -76,13 +64,28 @@ public class InfoPanel extends JPanel{
         PredId.setText("Predecessor node Id");
     }
     
+    public void setSuccId(String newID){
+        SuccPanel.setBackground(Color.BLUE);
+        SuccId.setForeground(Color.WHITE);
+        SuccId.setText(newID);
+    }
+    
     public void resetSuccId(){
         SuccPanel.setBackground(originalColor);
         SuccId.setForeground(Color.BLACK);
         SuccId.setText("Successor node Id");
     }
     
+    public void addFingersToPanel(ArrayList<PNode> arrayList){
+        FingPanel.removeAll();
+        for(int i = 0;i<arrayList.size();i++){
+            FingPanel.add(new JLabel(((BigInteger)((PNode)arrayList.get(i)).getAttribute("chordId")).toString(16)));
+        }
+        FingPanel.setBackground(Color.YELLOW);
+    }
+    
     public void resetFingPanel(){
+        FingPanel.setBackground(originalColor);
         FingPanel.removeAll();
         FingPanel.add(FingId);
     }
