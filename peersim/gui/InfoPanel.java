@@ -15,14 +15,18 @@ import javax.swing.JPanel;
  */
 public class InfoPanel extends JPanel{
     
-    private JLabel NodeId = new JLabel("Current node Id");
-    private JLabel PredId = new JLabel("Predecessor node Id");
-    private JLabel SuccId = new JLabel("Succesor node Id");
-    private JLabel FingId = new JLabel("Finger node Id");
-    private JPanel NodePanel = new JPanel();
-    private JPanel PredPanel = new JPanel();
-    private JPanel SuccPanel = new JPanel();
-    private JPanel FingPanel = new JPanel();
+    private JLabel NodeLabel = new JLabel("Currently selected Node ID:");
+    private JLabel PredLabel = new JLabel("Current Predecessor Node ID:");
+    private JLabel SuccLabel = new JLabel("Current Successor Node ID:");
+    private JLabel NodeId = new JLabel("none");
+    private JLabel PredId = new JLabel("none");
+    private JLabel SuccId = new JLabel("none");
+    private JLabel FingId = new JLabel("Finger node IDs:");
+    private JPanel NodePanel = new JPanel(new GridLayout(0,1));
+    private JPanel PredPanel = new JPanel(new GridLayout(0,1));
+    private JPanel SuccPanel = new JPanel(new GridLayout(0,1));
+    private JPanel FingPanel = new JPanel(new GridLayout(0,1));
+    private JPanel MasterPanel = new JPanel(new GridLayout(0,1));
     private Color originalColor;
     
     public InfoPanel(){
@@ -30,17 +34,21 @@ public class InfoPanel extends JPanel{
         setLayout(new GridLayout(0,1));
         originalColor = PredPanel.getBackground();
         
+        NodePanel.add(NodeLabel);
         NodePanel.add(NodeId);
-        add(NodePanel);
+        MasterPanel.add(NodePanel);
         
+        PredPanel.add(PredLabel);
         PredPanel.add(PredId);
-        add(PredPanel);
+        MasterPanel.add(PredPanel);
         
+        SuccPanel.add(SuccLabel);
         SuccPanel.add(SuccId);
-        add(SuccPanel);
-        FingPanel.setLayout(new GridLayout(0,1));
+        MasterPanel.add(SuccPanel);
+        
         FingPanel.add(FingId);
-        add(FingPanel);
+        MasterPanel.add(FingPanel);
+        add(MasterPanel);
         setVisible(true);
     }
     
@@ -49,36 +57,41 @@ public class InfoPanel extends JPanel{
     }
     
     public void resetNodeId(){
-        NodeId.setText("Current node Id");
+        NodeId.setText("none");
     }
     
     public void setPredId(String newID){
         PredPanel.setBackground(Color.RED);
+        PredLabel.setForeground(Color.WHITE);
         PredId.setForeground(Color.WHITE);
         PredId.setText(newID);
     }
     
     public void resetPredId(){
         PredPanel.setBackground(originalColor);
+        PredLabel.setForeground(Color.BLACK);
         PredId.setForeground(Color.BLACK);
-        PredId.setText("Predecessor node Id");
+        PredId.setText("none");
     }
     
     public void setSuccId(String newID){
         SuccPanel.setBackground(Color.BLUE);
+        SuccLabel.setForeground(Color.WHITE);
         SuccId.setForeground(Color.WHITE);
         SuccId.setText(newID);
     }
     
     public void resetSuccId(){
         SuccPanel.setBackground(originalColor);
+        SuccLabel.setForeground(Color.BLACK);
         SuccId.setForeground(Color.BLACK);
-        SuccId.setText("Successor node Id");
+        SuccId.setText("none");
     }
     
     public void addFingersToPanel(ArrayList<PNode> arrayList){
         FingPanel.removeAll();
         for(int i = 0;i<arrayList.size();i++){
+            FingPanel.add(new JLabel("Finger " + i + " node ID:"));
             FingPanel.add(new JLabel(((BigInteger)((PNode)arrayList.get(i)).getAttribute("chordId")).toString(16)));
         }
         FingPanel.setBackground(Color.YELLOW);
