@@ -31,13 +31,7 @@ public class SimulatorRunnable implements Runnable {
      * {@link CDSimulator}
      */
     public static final int CDSIM = 0;
-    /**
-     * {@link EDSimulator}
-     */
     public static final int EDSIM = 1;
-    /**
-     * Unknown simulator
-     */
     public static final int UNKNOWN = -1;
     /**
      * the class names of simulators used
@@ -47,13 +41,11 @@ public class SimulatorRunnable implements Runnable {
         "peersim.edsim.EDSimulator",};
     /**
      * Parameter representing the number of times the experiment is run.
-     * Defaults to 1. @config
      */
     public static final String PAR_EXPS = "simulation.experiments";
     /**
      * If present, this parameter activates the redirection of the standard
-     * output to a given PrintStream. This comes useful for processing the
-     * output of the simulation from within the simulator. @config
+     * output to a given PrintStream.
      */
     public static final String PAR_REDIRECT = "simulation.stdout";
 // ==================== static fields ===================================
@@ -65,8 +57,7 @@ public class SimulatorRunnable implements Runnable {
 //========================== methods ===================================
 //======================================================================
     /**
-     * Returns the numeric id of the simulator to invoke. At the moment this can
-     * be {@link #CDSIM}, {@link #EDSIM} or {@link #UNKNOWN}.
+     * Returns the numeric id of the simulator to invoke.
      */
     public static int getSimID() {
 

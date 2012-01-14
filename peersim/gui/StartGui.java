@@ -3,6 +3,8 @@
  * and open the template in the editor.
  */
 
+package peersim.gui;
+
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -16,7 +18,6 @@ import java.io.PrintStream;
 import java.util.Formatter;
 import java.util.Scanner;
 import javax.swing.BorderFactory;
-import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -28,7 +29,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
 import javax.swing.border.EtchedBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
