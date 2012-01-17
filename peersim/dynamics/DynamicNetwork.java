@@ -20,6 +20,7 @@ package peersim.dynamics;
 
 import peersim.config.Configuration;
 import peersim.core.*;
+import peersim.gui.NetworkHistory;
 
 /**
  * This {@link Control} can change the size of networks by adding and removing
@@ -129,6 +130,7 @@ protected void add(int n)
 		}
 		Network.add(newnode);
 	}
+        NetworkHistory.addToHistory(Network.getNodes(), Network.size(), CommonState.getTime(), "addition");
 }
 
 // ------------------------------------------------------------------
@@ -144,6 +146,7 @@ protected void remove(int n)
 	for (int i = 0; i < n; ++i) {
 		Network.remove(CommonState.r.nextInt(Network.size()));
 	}
+        NetworkHistory.addToHistory(Network.getNodes(), Network.size(), CommonState.getTime(), "removal");
 }
 
 

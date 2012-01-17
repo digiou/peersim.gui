@@ -118,7 +118,7 @@ public class SimulatorRunnable implements Runnable {
                         break;
                 }
                 // XXX call to GUI constructors, for faster access
-                ChordFrame chordMainWindow = new ChordFrame();
+                //ChordFrame chordMainWindow = new ChordFrame();
             }
 
         } catch (MissingParameterException e) {

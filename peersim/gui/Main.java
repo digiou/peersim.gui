@@ -18,7 +18,7 @@ public class Main{
         } catch(InterruptedException e){
             System.err.println("ERROR: Thread "+ T.getName() + " was interrupted!");
         }
-        
+        NetworkHistory.printHistory();
         System.out.println("Done!");
     }
     

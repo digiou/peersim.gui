@@ -13,22 +13,27 @@ import peersim.core.Node;
  */
 public class NetworkHistory {
     
-    private ArrayList<HistoryObject> History = new ArrayList<HistoryObject>();
-    private int pointer = 0;
+    private static ArrayList<HistoryObject> History = new ArrayList<HistoryObject>();
     
     private NetworkHistory(){}
     
-    public synchronized void addToHistory(Node[] someNodes, long timeStamp, String updateCause){
-        History.add(new HistoryObject(someNodes, timeStamp, updateCause));
+    public static void addToHistory(Node[] someNodes, int datSize, long timeStamp, String updateCause){
+        History.add(new HistoryObject(someNodes, datSize, timeStamp, updateCause));
     }
     
-    public synchronized HistoryObject getHistory(int index){
-        return History.get(index);
-    }
-    
-    public synchronized void resetHistory(){
-        pointer = 0;
+    public void resetHistory(){
         History = new ArrayList<HistoryObject>();
+    }
+    
+    public static void printHistory(){
+        int size = History.size();
+        HistoryObject toPrint;
+        for(int i=0;i<size;i++){
+            toPrint = History.get(i);
+            System.out.println("An event of: " + toPrint.getReason() +
+                    " happened at: " + toPrint.getTime()
+                    +"\nNetwork size is: " + toPrint.getSize());
+        }
     }
     
 }

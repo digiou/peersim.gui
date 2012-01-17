@@ -22,6 +22,7 @@ import java.util.*;
 
 import peersim.config.*;
 import peersim.core.*;
+import peersim.gui.NetworkHistory;
 
 
 /**
@@ -353,6 +354,7 @@ public static void nextExperiment()
 	System.err.println("EDSimulator: running initializers");
 	runInitializers();
 	scheduleControls();
+        NetworkHistory.addToHistory(Network.getNodes(), Network.size(), CommonState.getTime(), "initialed");
 
 	// Perform the actual simulation; executeNext() will tell when to
 	// stop.

@@ -13,14 +13,20 @@ import peersim.core.Node;
  */
 public class HistoryObject{
     
+    private final int NodeSize;
     private final Node[] Nodes;
     private final long TimeStamp;
     private final String UpdateReason;
     
-    public HistoryObject(Node[] nodes, long timeStamp, String updateReason){
+    public HistoryObject(Node[] nodes, int nodeSize, long timeStamp, String updateReason){
         this.Nodes = nodes;
         this.TimeStamp = timeStamp;
         this.UpdateReason = updateReason;
+        this.NodeSize = nodeSize;
+    }
+    
+    public synchronized int getSize(){
+        return NodeSize;
     }
     
     public synchronized Node[] getNodes(){
