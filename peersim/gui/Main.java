@@ -11,14 +11,16 @@ package peersim.gui;
 public class Main{
     
     public static void main(String[] args){
-        Thread T = new Thread(new SimulatorRunnable(args), "Test");
-        T.start();
+        Thread sim = new Thread(new SimulatorRunnable(args), "SIM");
+        sim.start();
         try{
-            T.join();
+            sim.join();
         } catch(InterruptedException e){
-            System.err.println("ERROR: Thread "+ T.getName() + " was interrupted!");
+            System.err.println("ERROR: Thread "+ sim.getName() + " was interrupted!");
         }
-        NetworkHistory.printHistory();
+        //NetworkHistory.printHistory();
+        Thread gui = new GUIThread(new GUIRunnable(), "GUI");
+        gui.start();
         System.out.println("Done!");
     }
     

@@ -19,29 +19,32 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import peersim.chord.ChordProtocol;
-import peersim.core.Network;
+import peersim.core.Node;
 
 /**
  *
  * @author jim
  */
-public class ChordCanvas extends PCanvas{
+public class ChordCanvas extends PCanvas {
+
     private Dimension SCREEN = new Dimension(1024, 768);
-    private int NODES = Network.size();
+    private int NODES;
     private PCamera camera;
-    int margin = 50;
-    int chordPosition;
-    int width = SCREEN.width;
-    int height = SCREEN.height;
-    int radius = width / 2;
-    float cx = margin + radius;
-    float cy = margin + radius;
-    Point2D epicenter = new Point2D.Double(cx, cy);
-    Hashtable<Long, PNode> hashTable = new Hashtable<Long, PNode>(NODES);
-    PLayer nodeLayer = this.getLayer();
-    PLayer edgeLayer = new PLayer();
-    InfoPanel panel;
-    
+    private int margin = 50;
+    private int chordPosition;
+    private int width = SCREEN.width;
+    private int height = SCREEN.height;
+    private int radius = width / 2;
+    private float cx = margin + radius;
+    private float cy = margin + radius;
+    private Point2D epicenter = new Point2D.Double(cx, cy);
+    private Hashtable<Long, PNode> hashTable;
+    private PLayer nodeLayer = this.getLayer();
+    private PLayer edgeLayer = new PLayer();
+    private InfoPanel panel;
+    private HistoryObject currentNetwork;
+    private int historySize = NetworkHistory.getSize();
+
     public ChordCanvas(InfoPanel inheritedPanel) {
         super();
         setSize(SCREEN);
@@ -50,37 +53,37 @@ public class ChordCanvas extends PCanvas{
         this.getRoot().addChild(edgeLayer);
         camera.addLayer(0, edgeLayer);
 
-        findChordProtocol();
+        currentNetwork = NetworkHistory.getEntry(0);
+        System.out.println("history size is: " + historySize);
+        System.out.println("currentNetwork size is: " + currentNetwork.size());
+        NODES = currentNetwork.size();
+        hashTable = new Hashtable<Long, PNode>(NODES);
+        findChordProtocol(currentNetwork.getNode(0));
         drawNodes(nodeLayer);
 
         nodeLayer.addInputEventListener(new ChordMouseEventHandler());
         nodeLayer.addInputEventListener(new TooltipHandler());
         this.setVisible(true);
-        //super("Ring", false, new PSwingCanvas());
     }
-    
+
     /*
-    @Override
-    public void initialize() {
-        setSize(SCREEN);
-        camera = canvas.getCamera();
-        canvas.getRoot().addChild(edgeLayer);
-        camera.addLayer(0, edgeLayer);
-
-        findChordProtocol();
-        drawNodes(nodeLayer);
-
-        nodeLayer.addInputEventListener(new ChordMouseEventHandler());
-        nodeLayer.addInputEventListener(new TooltipHandler());
-    }*/
-
+     * @Override public void initialize() { setSize(SCREEN); camera =
+     * canvas.getCamera(); canvas.getRoot().addChild(edgeLayer);
+     * camera.addLayer(0, edgeLayer);
+     *
+     * findChordProtocol(); drawNodes(nodeLayer);
+     *
+     * nodeLayer.addInputEventListener(new ChordMouseEventHandler());
+     * nodeLayer.addInputEventListener(new TooltipHandler());
+    }
+     */
     private Hashtable<Long, PNode> getRelationships() {
         return hashTable;
     }
 
-    private void findChordProtocol() {
-        for (int i = 0; i < Network.get(0).protocolSize(); i++) {
-            if (Network.get(0).getProtocol(i).getClass() == ChordProtocol.class) {
+    private void findChordProtocol(Node aNode) {
+        for (int i = 0; i < aNode.protocolSize(); i++) {
+            if (aNode.getProtocol(i).getClass() == ChordProtocol.class) {
                 chordPosition = i;
                 break;
             }
@@ -88,14 +91,14 @@ public class ChordCanvas extends PCanvas{
     }
 
     private void drawNodes(PLayer nodeLayer) {
-        for (int i = 0; i < Network.size(); i++) {
-            ChordProtocol cp = (ChordProtocol) Network.get(i).getProtocol(chordPosition);
+        for (int i = 0; i < currentNetwork.size(); i++) {
+            ChordProtocol cp = (ChordProtocol) currentNetwork.getNode(i).getProtocol(chordPosition);
             double angle = getAngle(cp);
             PPath node = nodePosition(angle);
             node.setStroke(new PFixedWidthStroke());
             nodeLayer.addChild(node);
-            storeInfo(node, cp, Network.get(i).getID());
-            hashTable.put(Network.get(i).getID(), node);
+            storeInfo(node, cp, currentNetwork.getNode(i).getID());
+            hashTable.put(currentNetwork.getNode(i).getID(), node);
         }
     }
 
@@ -106,7 +109,7 @@ public class ChordCanvas extends PCanvas{
         node.addAttribute("fingers", new ArrayList());
         int SIZE = cp.fingerTable.length;
         for (int i = 0; i < SIZE; i++) {
-            if(!(cp.fingerTable[i].getID() == succId || cp.fingerTable[i].getID() == SimID)){
+            if (!(cp.fingerTable[i].getID() == succId || cp.fingerTable[i].getID() == SimID)) {
                 ((ArrayList) node.getAttribute("fingers")).add(cp.fingerTable[i].getID());
             }
         }
@@ -144,19 +147,19 @@ public class ChordCanvas extends PCanvas{
         Point2D newPoint = pointBetween(midpoint, epicenter);
         PPath line = new PPath();
         line.moveTo((float) centerStart.getX(), (float) centerStart.getY());
-        line.curveTo((float) newPoint.getX(),(float) newPoint.getY(),(float) newPoint.getX(),(float) newPoint.getY(), (float) centerEnd.getX(), (float) centerEnd.getY());
+        line.curveTo((float) newPoint.getX(), (float) newPoint.getY(), (float) newPoint.getX(), (float) newPoint.getY(), (float) centerEnd.getX(), (float) centerEnd.getY());
         line.setStroke(new PFixedWidthStroke());
         return line;
     }
-    
+
     private Point2D midpoint(Point2D p1, Point2D p2) {
         return new Point2D.Double(p1.getX() + (p2.getX() - p1.getX()) / 2,
-                           p1.getY() + (p2.getY() - p1.getY()) / 2);
+                p1.getY() + (p2.getY() - p1.getY()) / 2);
     }
-    
+
     private Point2D pointBetween(Point2D p1, Point2D p2) {
         return new Point2D.Double(p1.getX() + (p2.getX() - p1.getX()) / 17,
-                           p1.getY() + (p2.getY() - p1.getY()) / 17);
+                p1.getY() + (p2.getY() - p1.getY()) / 17);
     }
 
     public String tooltipText(PNode aNode) {
@@ -165,15 +168,15 @@ public class ChordCanvas extends PCanvas{
         tooltipText = "Node ID#: " + chordId + "\n";
         return tooltipText;
     }
-    
-    private void giveInfoToPanel(PNode thisNode, PNode succ, PNode pred, ArrayList<PNode> arraylist){
-        panel.setNodeId(((BigInteger)thisNode.getAttribute("chordId")).toString(16));
-        panel.setPredId(((BigInteger)pred.getAttribute("chordId")).toString(16));
-        panel.setSuccId(((BigInteger)succ.getAttribute("chordId")).toString(16));
+
+    private void giveInfoToPanel(PNode thisNode, PNode succ, PNode pred, ArrayList<PNode> arraylist) {
+        panel.setNodeId(((BigInteger) thisNode.getAttribute("chordId")).toString(16));
+        panel.setPredId(((BigInteger) pred.getAttribute("chordId")).toString(16));
+        panel.setSuccId(((BigInteger) succ.getAttribute("chordId")).toString(16));
         panel.addFingersToPanel(arraylist);
     }
-    
-    private void removeInfoFromPanel(){
+
+    private void removeInfoFromPanel() {
         panel.resetPanel();
     }
 
@@ -291,7 +294,7 @@ public class ChordCanvas extends PCanvas{
                         pred.moveToFront();
                         e.getPickedNode().moveToFront();
                         edgeLayer.addChildren(lines);
-                        
+
                         something = e.getPickedNode();
                         giveInfoToPanel(e.getPickedNode(), succ, pred, fingerNodes);
                     }
@@ -323,10 +326,10 @@ public class ChordCanvas extends PCanvas{
         }
     }
     //XXX not working when you're not on a PFrame, yet
+
     private class TooltipHandler extends PBasicInputEventHandler {
 
         final PText tooltipNode = new PText();
-        
 
         public TooltipHandler() {
             tooltipNode.setPickable(false);

@@ -143,6 +143,7 @@ protected void add(int n)
  */
 protected void remove(int n)
 {
+        
 	for (int i = 0; i < n; ++i) {
 		Network.remove(CommonState.r.nextInt(Network.size()));
 	}

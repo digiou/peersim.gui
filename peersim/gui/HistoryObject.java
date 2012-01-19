@@ -19,25 +19,29 @@ public class HistoryObject{
     private final String UpdateReason;
     
     public HistoryObject(Node[] nodes, int nodeSize, long timeStamp, String updateReason){
-        this.Nodes = nodes;
+        this.Nodes = nodes.clone();
         this.TimeStamp = timeStamp;
         this.UpdateReason = updateReason;
         this.NodeSize = nodeSize;
     }
     
-    public synchronized int getSize(){
+    public int size(){
         return NodeSize;
     }
     
-    public synchronized Node[] getNodes(){
+    public Node[] getNodes(){
         return Nodes;
     }
     
-    public synchronized long getTime(){
+    public Node getNode(int index){
+        return Nodes[index];
+    }
+    
+    public long getTime(){
         return TimeStamp;
     }
     
-    public synchronized String getReason(){
+    public String getReason(){
         return UpdateReason;
     }
 }

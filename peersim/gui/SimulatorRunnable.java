@@ -10,7 +10,6 @@ import peersim.cdsim.*;
 import peersim.config.*;
 import peersim.core.*;
 import peersim.edsim.*;
-import peersim.gui.*;
 
 /**
  *
@@ -117,8 +116,6 @@ public class SimulatorRunnable implements Runnable {
                         EDSimulator.nextExperiment();
                         break;
                 }
-                // XXX call to GUI constructors, for faster access
-                //ChordFrame chordMainWindow = new ChordFrame();
             }
 
         } catch (MissingParameterException e) {

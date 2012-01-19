@@ -25,14 +25,22 @@ public class NetworkHistory {
         History = new ArrayList<HistoryObject>();
     }
     
+    public static int getSize(){
+        return History.size();
+    }
+    
+    public static HistoryObject getEntry(int index){
+        return History.get(index);
+    }
+    
     public static void printHistory(){
         int size = History.size();
         HistoryObject toPrint;
         for(int i=0;i<size;i++){
             toPrint = History.get(i);
-            System.out.println("An event of: " + toPrint.getReason() +
-                    " happened at: " + toPrint.getTime()
-                    +"\nNetwork size is: " + toPrint.getSize());
+            System.out.println("Event of: " + toPrint.getReason()
+                    +"\nNetwork size is: " + toPrint.size()
+                    + " Number of nodes: " + toPrint.getNodes().length);
         }
     }
     

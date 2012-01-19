@@ -21,7 +21,6 @@ package peersim.core;
 import peersim.config.Configuration;
 import java.util.Comparator;
 import java.util.Arrays;
-import peersim.gui.NetworkHistory;
 
 /**
 * This class forms the basic framework of all simulations.

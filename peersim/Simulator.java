@@ -23,7 +23,6 @@ import peersim.cdsim.*;
 import peersim.config.*;
 import peersim.core.*;
 import peersim.edsim.*;
-import peersim.gui.*;
 
 /**
  * This is the main entry point to peersim. This class loads configuration and
@@ -178,8 +177,6 @@ public class Simulator {
                         EDSimulator.nextExperiment();
                         break;
                 }
-                // XXX call to GUI constructors, for faster access
-                ChordFrame chordMainWindow = new ChordFrame();
             }
 
         } catch (MissingParameterException e) {
