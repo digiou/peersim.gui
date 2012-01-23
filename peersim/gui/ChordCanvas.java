@@ -12,12 +12,15 @@ import edu.umd.cs.piccolo.nodes.PText;
 import edu.umd.cs.piccolox.util.PFixedWidthStroke;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Hashtable;
+import javax.swing.JButton;
 import peersim.chord.ChordProtocol;
 import peersim.core.Node;
 
@@ -28,8 +31,7 @@ import peersim.core.Node;
 public class ChordCanvas extends PCanvas {
 
     private Dimension SCREEN = new Dimension(1024, 768);
-    private int NODES;
-    private PCamera camera;
+    private int historySize = NetworkHistory.getSize() - 1;
     private int margin = 50;
     private int chordPosition;
     private int width = SCREEN.width;
@@ -37,32 +39,49 @@ public class ChordCanvas extends PCanvas {
     private int radius = width / 2;
     private float cx = margin + radius;
     private float cy = margin + radius;
+    private PCamera camera;
     private Point2D epicenter = new Point2D.Double(cx, cy);
     private Hashtable<Long, PNode> hashTable;
     private PLayer nodeLayer = this.getLayer();
     private PLayer edgeLayer = new PLayer();
     private InfoPanel panel;
+    private int current = 0;
     private HistoryObject currentNetwork;
-    private int historySize = NetworkHistory.getSize();
-
-    public ChordCanvas(InfoPanel inheritedPanel) {
+    private JButton back, frwrd;
+    private PBasicInputEventHandler colors, tooltip;
+    public ChordCanvas(InfoPanel inheritedPanel, JButton back, final JButton frwrd) {
         super();
         setSize(SCREEN);
         this.panel = inheritedPanel;
+        this.back = back;
+        this.frwrd = frwrd;
+        
+        this.back.setEnabled(false);
+        if(historySize == 0){
+            this.frwrd.setEnabled(false);
+        }
+        
         camera = this.getCamera();
         this.getRoot().addChild(edgeLayer);
         camera.addLayer(0, edgeLayer);
 
-        currentNetwork = NetworkHistory.getEntry(0);
-        System.out.println("history size is: " + historySize);
-        System.out.println("currentNetwork size is: " + currentNetwork.size());
-        NODES = currentNetwork.size();
-        hashTable = new Hashtable<Long, PNode>(NODES);
-        findChordProtocol(currentNetwork.getNode(0));
-        drawNodes(nodeLayer);
+        draw(current);
+        
+        frwrd.addActionListener(new ActionListener() {
 
-        nodeLayer.addInputEventListener(new ChordMouseEventHandler());
-        nodeLayer.addInputEventListener(new TooltipHandler());
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                drawNext();
+            }
+        });
+        back.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                drawPrevious();
+            }
+        });
+        
         this.setVisible(true);
     }
 
@@ -88,6 +107,17 @@ public class ChordCanvas extends PCanvas {
                 break;
             }
         }
+    }
+    
+    private void draw(int pointer){
+        currentNetwork = NetworkHistory.getEntry(pointer);
+        hashTable = new Hashtable<Long, PNode>(currentNetwork.size());
+        findChordProtocol(currentNetwork.getNode(0));
+        drawNodes(nodeLayer);
+        colors = new ChordMouseEventHandler();
+        tooltip = new TooltipHandler();
+        nodeLayer.addInputEventListener(colors);
+        nodeLayer.addInputEventListener(tooltip);
     }
 
     private void drawNodes(PLayer nodeLayer) {
@@ -179,6 +209,38 @@ public class ChordCanvas extends PCanvas {
     private void removeInfoFromPanel() {
         panel.resetPanel();
     }
+    
+    private void clearCanvas(){
+        edgeLayer.removeAllChildren();
+        nodeLayer.removeAllChildren();
+        nodeLayer.removeInputEventListener(colors);
+        nodeLayer.removeInputEventListener(tooltip);
+        removeInfoFromPanel();
+    }
+    
+    private void drawNext(){
+        clearCanvas();
+        current++;
+        draw(current);
+        if(current == 1){
+            back.setEnabled(true);
+        }
+        if(current == historySize){
+            frwrd.setEnabled(false);
+        }
+    }
+    
+    private void drawPrevious(){
+        clearCanvas();
+        current--;
+        draw(current);
+        if(current == 0){
+            back.setEnabled(false);
+        }
+        if(current == historySize-1){
+            frwrd.setEnabled(true);
+        }
+    }
 
     public class ChordMouseEventHandler extends PBasicInputEventHandler {
 
@@ -202,8 +264,11 @@ public class ChordCanvas extends PCanvas {
                 succ = (PNode) getRelationships().get((Long) e.getPickedNode().getAttribute("successor"));
                 ArrayList fingerID = (ArrayList) e.getPickedNode().getAttribute("fingers");
                 fingerNodes = new ArrayList();
-
-                lines.add(drawLine(e.getPickedNode(), pred));
+                try{
+                    lines.add(drawLine(e.getPickedNode(), pred));
+                }catch(Exception ex){
+                    System.out.println("Caught it");
+                }
                 lines.add(drawLine(e.getPickedNode(), succ));
                 for (int i = 0; i < fingerID.size(); i++) {
                     fingerNodes.add(getRelationships().get((Long) fingerID.get(i)));
@@ -325,8 +390,7 @@ public class ChordCanvas extends PCanvas {
             }
         }
     }
-    //XXX not working when you're not on a PFrame, yet
-
+    
     private class TooltipHandler extends PBasicInputEventHandler {
 
         final PText tooltipNode = new PText();

@@ -14,15 +14,12 @@ import peersim.core.Node;
 public class NetworkHistory {
     
     private static ArrayList<HistoryObject> History = new ArrayList<HistoryObject>();
+    private int pointer;
     
     private NetworkHistory(){}
     
     public static void addToHistory(Node[] someNodes, int datSize, long timeStamp, String updateCause){
         History.add(new HistoryObject(someNodes, datSize, timeStamp, updateCause));
-    }
-    
-    public void resetHistory(){
-        History = new ArrayList<HistoryObject>();
     }
     
     public static int getSize(){
