@@ -4,6 +4,7 @@
  */
 package peersim.gui;
 
+import java.util.ArrayList;
 import peersim.core.Node;
 
 
@@ -14,27 +15,31 @@ import peersim.core.Node;
 public class HistoryObject{
     
     private final int NodeSize;
-    private final Node[] Nodes;
+    private ArrayList<HistoryNode> Nodes;
     private final long TimeStamp;
     private final String UpdateReason;
     
     public HistoryObject(Node[] nodes, int nodeSize, long timeStamp, String updateReason){
-        this.Nodes = nodes.clone();
+        this.NodeSize = new Integer(nodeSize);
+        this.Nodes = new ArrayList<HistoryNode>();
+        for(int i=0;i<this.NodeSize;i++){
+            Nodes.add(new HistoryNode(nodes[i]));
+        }
         this.TimeStamp = timeStamp;
         this.UpdateReason = updateReason;
-        this.NodeSize = nodeSize;
+        
     }
     
     public int size(){
         return NodeSize;
     }
     
-    public Node[] getNodes(){
+    public ArrayList<HistoryNode> getNodes(){
         return Nodes;
     }
     
-    public Node getNode(int index){
-        return Nodes[index];
+    public HistoryNode getNode(int index){
+        return Nodes.get(index);
     }
     
     public long getTime(){

@@ -49,24 +49,25 @@ public class ChordCanvas extends PCanvas {
     private HistoryObject currentNetwork;
     private JButton back, frwrd;
     private PBasicInputEventHandler colors, tooltip;
+
     public ChordCanvas(InfoPanel inheritedPanel, JButton back, final JButton frwrd) {
         super();
         setSize(SCREEN);
         this.panel = inheritedPanel;
         this.back = back;
         this.frwrd = frwrd;
-        
+
         this.back.setEnabled(false);
-        if(historySize == 0){
+        if (historySize == 0) {
             this.frwrd.setEnabled(false);
         }
-        
+
         camera = this.getCamera();
         this.getRoot().addChild(edgeLayer);
         camera.addLayer(0, edgeLayer);
 
         draw(current);
-        
+
         frwrd.addActionListener(new ActionListener() {
 
             @Override
@@ -81,7 +82,7 @@ public class ChordCanvas extends PCanvas {
                 drawPrevious();
             }
         });
-        
+
         this.setVisible(true);
     }
 
@@ -93,8 +94,7 @@ public class ChordCanvas extends PCanvas {
      * findChordProtocol(); drawNodes(nodeLayer);
      *
      * nodeLayer.addInputEventListener(new ChordMouseEventHandler());
-     * nodeLayer.addInputEventListener(new TooltipHandler());
-    }
+     * nodeLayer.addInputEventListener(new TooltipHandler()); }
      */
     private Hashtable<Long, PNode> getRelationships() {
         return hashTable;
@@ -108,11 +108,11 @@ public class ChordCanvas extends PCanvas {
             }
         }
     }
-    
-    private void draw(int pointer){
+
+    private void draw(int pointer) {
         currentNetwork = NetworkHistory.getEntry(pointer);
         hashTable = new Hashtable<Long, PNode>(currentNetwork.size());
-        findChordProtocol(currentNetwork.getNode(0));
+        //findChordProtocol(currentNetwork.getNode(0));
         drawNodes(nodeLayer);
         colors = new ChordMouseEventHandler();
         tooltip = new TooltipHandler();
@@ -122,28 +122,35 @@ public class ChordCanvas extends PCanvas {
 
     private void drawNodes(PLayer nodeLayer) {
         for (int i = 0; i < currentNetwork.size(); i++) {
-            ChordProtocol cp = (ChordProtocol) currentNetwork.getNode(i).getProtocol(chordPosition);
-            double angle = getAngle(cp);
+            HistoryChordProtocol hcp = (HistoryChordProtocol) currentNetwork.getNode(i).getProtocol();
+            double angle = getAngle(hcp);
             PPath node = nodePosition(angle);
             node.setStroke(new PFixedWidthStroke());
             nodeLayer.addChild(node);
-            storeInfo(node, cp, currentNetwork.getNode(i).getID());
+            storeInfo(node, hcp, currentNetwork.getNode(i).getID());
             hashTable.put(currentNetwork.getNode(i).getID(), node);
         }
     }
 
-    private void storeInfo(PNode node, ChordProtocol cp, long SimID) {
-        node.addAttribute("predecessor", cp.predecessor.getID());
-        node.addAttribute("successor", cp.successorList[0].getID());
-        long succId = cp.successorList[0].getID();
+    private void storeInfo(PNode node, HistoryChordProtocol hcp, long SimID) {
+        if (hcp.predecessor.equals(SimID)) {
+            node.addAttribute("predecessor", "null");/*
+             * node just added, I put the node's /*simulation ID if predecessor
+             * is not yet found by ChordProtocol controls
+             */
+        } else {
+            node.addAttribute("predecessor", hcp.predecessor);
+        }
+        long succId = hcp.successorList[0];
+        node.addAttribute("successor", succId);
         node.addAttribute("fingers", new ArrayList());
-        int SIZE = cp.fingerTable.length;
+        int SIZE = hcp.fingerTable.length;
         for (int i = 0; i < SIZE; i++) {
-            if (!(cp.fingerTable[i].getID() == succId || cp.fingerTable[i].getID() == SimID)) {
-                ((ArrayList) node.getAttribute("fingers")).add(cp.fingerTable[i].getID());
+            if (!(hcp.fingerTable[i] == succId || hcp.fingerTable[i] == SimID)) {
+                ((ArrayList) node.getAttribute("fingers")).add(hcp.fingerTable[i]);
             }
         }
-        node.addAttribute("chordId", cp.chordId);
+        node.addAttribute("chordId", hcp.chordId);
     }
 
     private PPath nodePosition(double angle) {
@@ -152,9 +159,9 @@ public class ChordCanvas extends PCanvas {
         return PPath.createEllipse(x, y, 10, 10);
     }
 
-    private double getAngle(ChordProtocol cp) {
-        double chordId = cp.chordId.doubleValue();
-        double maxValue = Math.pow(2, cp.m);
+    private double getAngle(HistoryChordProtocol hcp) {
+        double chordId = hcp.chordId.doubleValue();
+        double maxValue = Math.pow(2, hcp.m);
         double degree = ((chordId / maxValue) * 365);
         double radian = degree / 180 * Math.PI;
         return radian;
@@ -201,7 +208,12 @@ public class ChordCanvas extends PCanvas {
 
     private void giveInfoToPanel(PNode thisNode, PNode succ, PNode pred, ArrayList<PNode> arraylist) {
         panel.setNodeId(((BigInteger) thisNode.getAttribute("chordId")).toString(16));
-        panel.setPredId(((BigInteger) pred.getAttribute("chordId")).toString(16));
+        if(pred != null){
+            panel.setPredId(((BigInteger) pred.getAttribute("chordId")).toString(16));
+        } else {
+            panel.setPredId("Not def yet!");
+        }
+        
         panel.setSuccId(((BigInteger) succ.getAttribute("chordId")).toString(16));
         panel.addFingersToPanel(arraylist);
     }
@@ -209,35 +221,35 @@ public class ChordCanvas extends PCanvas {
     private void removeInfoFromPanel() {
         panel.resetPanel();
     }
-    
-    private void clearCanvas(){
+
+    private void clearCanvas() {
         edgeLayer.removeAllChildren();
         nodeLayer.removeAllChildren();
         nodeLayer.removeInputEventListener(colors);
         nodeLayer.removeInputEventListener(tooltip);
         removeInfoFromPanel();
     }
-    
-    private void drawNext(){
+
+    private void drawNext() {
         clearCanvas();
         current++;
         draw(current);
-        if(current == 1){
+        if (current == 1) {
             back.setEnabled(true);
         }
-        if(current == historySize){
+        if (current == historySize) {
             frwrd.setEnabled(false);
         }
     }
-    
-    private void drawPrevious(){
+
+    private void drawPrevious() {
         clearCanvas();
         current--;
         draw(current);
-        if(current == 0){
+        if (current == 0) {
             back.setEnabled(false);
         }
-        if(current == historySize-1){
+        if (current == historySize - 1) {
             frwrd.setEnabled(true);
         }
     }
@@ -260,15 +272,20 @@ public class ChordCanvas extends PCanvas {
         public void mouseEntered(PInputEvent e) {
             super.mouseEntered(e);
             if (e.getButton() == MouseEvent.NOBUTTON) {
-                pred = (PNode) getRelationships().get((Long) e.getPickedNode().getAttribute("predecessor"));
+                //special pred treatment
+                if (!e.getPickedNode().getAttribute("predecessor").equals("null")) {
+                    pred = (PNode) getRelationships().get((Long) e.getPickedNode().getAttribute("predecessor"));
+                    lines.add(drawLine(e.getPickedNode(), pred));
+                    pred.setPaint(Color.RED);
+                    pred.moveToFront();
+                } else {
+                    pred = null;
+                }
+
                 succ = (PNode) getRelationships().get((Long) e.getPickedNode().getAttribute("successor"));
                 ArrayList fingerID = (ArrayList) e.getPickedNode().getAttribute("fingers");
                 fingerNodes = new ArrayList();
-                try{
-                    lines.add(drawLine(e.getPickedNode(), pred));
-                }catch(Exception ex){
-                    System.out.println("Caught it");
-                }
+
                 lines.add(drawLine(e.getPickedNode(), succ));
                 for (int i = 0; i < fingerID.size(); i++) {
                     fingerNodes.add(getRelationships().get((Long) fingerID.get(i)));
@@ -277,10 +294,10 @@ public class ChordCanvas extends PCanvas {
                     lines.add(drawCurvedLine(e.getPickedNode(), (PNode) fingerNodes.get(i)));
                 }
                 e.getPickedNode().setPaint(Color.GREEN);
-                pred.setPaint(Color.RED);
+
                 succ.setPaint(Color.BLUE);
                 succ.moveToFront();
-                pred.moveToFront();
+
                 e.getPickedNode().moveToFront();
                 edgeLayer.addChildren(lines);
             }
@@ -303,11 +320,14 @@ public class ChordCanvas extends PCanvas {
                         selectedSomething = true;
 
                         e.getPickedNode().setPaint(Color.WHITE);
-                        pred.setPaint(Color.WHITE);
+                        if (pred != null) {
+                            pred.setPaint(Color.WHITE);
+                            pred.moveToBack();
+                        }
+
                         succ.setPaint(Color.WHITE);
                         e.getPickedNode().moveToBack();
                         succ.moveToBack();
-                        pred.moveToBack();
                         edgeLayer.removeChildren(lines);
                         int fingersSize = fingerNodes.size();
                         for (int i = 0; i < fingersSize; i++) {
@@ -321,11 +341,15 @@ public class ChordCanvas extends PCanvas {
                         removeInfoFromPanel();
                     } else {
                         something.setPaint(Color.WHITE);
-                        pred.setPaint(Color.WHITE);
+                        if (pred != null) {
+                            pred.setPaint(Color.WHITE);
+                            pred.moveToBack();
+                        }
+
                         succ.setPaint(Color.WHITE);
                         something.moveToBack();
                         succ.moveToBack();
-                        pred.moveToBack();
+
                         edgeLayer.removeChildren(lines);
                         int fingersSize = fingerNodes.size();
                         for (int i = 0; i < fingersSize; i++) {
@@ -339,12 +363,19 @@ public class ChordCanvas extends PCanvas {
 
                         selectedSomething = false;
 
-                        pred = (PNode) getRelationships().get((Long) e.getPickedNode().getAttribute("predecessor"));
+                        if (!e.getPickedNode().getAttribute("predecessor").equals("null")) {
+                            pred = (PNode) getRelationships().get((Long) e.getPickedNode().getAttribute("predecessor"));
+                            lines.add(drawLine(e.getPickedNode(), pred));
+                            pred.setPaint(Color.RED);
+                            pred.moveToFront();
+                        } else {
+                            pred = null;
+                        }
+
                         succ = (PNode) getRelationships().get((Long) e.getPickedNode().getAttribute("successor"));
                         ArrayList fingerID = (ArrayList) e.getPickedNode().getAttribute("fingers");
                         fingerNodes = new ArrayList();
 
-                        lines.add(drawLine(e.getPickedNode(), pred));
                         lines.add(drawLine(e.getPickedNode(), succ));
                         for (int i = 0; i < fingerID.size(); i++) {
                             fingerNodes.add(getRelationships().get((Long) fingerID.get(i)));
@@ -353,10 +384,8 @@ public class ChordCanvas extends PCanvas {
                             lines.add(drawCurvedLine(e.getPickedNode(), (PNode) fingerNodes.get(i)));
                         }
                         e.getPickedNode().setPaint(Color.GREEN);
-                        pred.setPaint(Color.RED);
                         succ.setPaint(Color.BLUE);
                         succ.moveToFront();
-                        pred.moveToFront();
                         e.getPickedNode().moveToFront();
                         edgeLayer.addChildren(lines);
 
@@ -390,7 +419,7 @@ public class ChordCanvas extends PCanvas {
             }
         }
     }
-    
+
     private class TooltipHandler extends PBasicInputEventHandler {
 
         final PText tooltipNode = new PText();

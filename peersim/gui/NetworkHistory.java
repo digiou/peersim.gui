@@ -14,7 +14,6 @@ import peersim.core.Node;
 public class NetworkHistory {
     
     private static ArrayList<HistoryObject> History = new ArrayList<HistoryObject>();
-    private int pointer;
     
     private NetworkHistory(){}
     
@@ -37,7 +36,7 @@ public class NetworkHistory {
             toPrint = History.get(i);
             System.out.println("Event of: " + toPrint.getReason()
                     +"\nNetwork size is: " + toPrint.size()
-                    + " Number of nodes: " + toPrint.getNodes().length);
+                    + " Number of nodes: " + toPrint.getNodes().size());
         }
     }
     

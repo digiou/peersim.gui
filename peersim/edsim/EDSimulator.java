@@ -354,8 +354,8 @@ public static void nextExperiment()
 	System.err.println("EDSimulator: running initializers");
 	runInitializers();
 	scheduleControls();
-        NetworkHistory.addToHistory(Network.getNodes(), Network.size(), CommonState.getTime(), "initialed");
-
+        NetworkHistory.addToHistory(Network.getNodes(), Network.size(), CommonState.getTime(), "initial");
+        
 	// Perform the actual simulation; executeNext() will tell when to
 	// stop.
 	boolean exit = false;
