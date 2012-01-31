@@ -97,6 +97,11 @@ public class InfoPanel extends JPanel{
         FingPanel.setBackground(Color.YELLOW);
     }
     
+    public void setNullFingers(){
+        FingPanel.removeAll();
+        FingPanel.add(new JLabel("No fings yet!"));
+    }
+    
     public void resetFingPanel(){
         FingPanel.setBackground(originalColor);
         FingPanel.removeAll();

@@ -49,6 +49,7 @@ public class ChordCanvas extends PCanvas {
     private HistoryObject currentNetwork;
     private JButton back, frwrd;
     private PBasicInputEventHandler colors, tooltip;
+    private int counter = 0;
 
     public ChordCanvas(InfoPanel inheritedPanel, JButton back, final JButton frwrd) {
         super();
@@ -141,8 +142,14 @@ public class ChordCanvas extends PCanvas {
         } else {
             node.addAttribute("predecessor", hcp.predecessor);
         }
+
         long succId = hcp.successorList[0];
-        node.addAttribute("successor", succId);
+        if (hcp.successorList[0].equals(SimID)) {
+            node.addAttribute("successor", "null");
+        } else {
+            node.addAttribute("successor", succId);
+        }
+
         node.addAttribute("fingers", new ArrayList());
         int SIZE = hcp.fingerTable.length;
         for (int i = 0; i < SIZE; i++) {
@@ -208,14 +215,24 @@ public class ChordCanvas extends PCanvas {
 
     private void giveInfoToPanel(PNode thisNode, PNode succ, PNode pred, ArrayList<PNode> arraylist) {
         panel.setNodeId(((BigInteger) thisNode.getAttribute("chordId")).toString(16));
-        if(pred != null){
+        if (pred != null) {
             panel.setPredId(((BigInteger) pred.getAttribute("chordId")).toString(16));
         } else {
             panel.setPredId("Not def yet!");
         }
-        
-        panel.setSuccId(((BigInteger) succ.getAttribute("chordId")).toString(16));
-        panel.addFingersToPanel(arraylist);
+
+        if (succ != null) {
+            panel.setSuccId(((BigInteger) succ.getAttribute("chordId")).toString(16));
+        } else {
+            panel.setSuccId("Not def yet!");
+        }
+
+        if (arraylist.get(0) != null) {
+            panel.addFingersToPanel(arraylist);
+        } else {
+            panel.setNullFingers();
+        }
+
     }
 
     private void removeInfoFromPanel() {
@@ -275,29 +292,41 @@ public class ChordCanvas extends PCanvas {
                 //special pred treatment
                 if (!e.getPickedNode().getAttribute("predecessor").equals("null")) {
                     pred = (PNode) getRelationships().get((Long) e.getPickedNode().getAttribute("predecessor"));
-                    lines.add(drawLine(e.getPickedNode(), pred));
-                    pred.setPaint(Color.RED);
-                    pred.moveToFront();
+                    //necessary
+                    if (pred != null) {
+                        lines.add(drawLine(e.getPickedNode(), pred));
+                        pred.setPaint(Color.RED);
+                        pred.moveToFront();
+                    }
                 } else {
                     pred = null;
                 }
 
-                succ = (PNode) getRelationships().get((Long) e.getPickedNode().getAttribute("successor"));
+                if (!e.getPickedNode().getAttribute("successor").equals("null")) {
+                    succ = (PNode) getRelationships().get((Long) e.getPickedNode().getAttribute("successor"));
+                    if (succ != null) {
+                        lines.add(drawLine(e.getPickedNode(), succ));
+                        succ.setPaint(Color.BLUE);
+                        succ.moveToFront();
+                    }
+                } else {
+                    succ = null;
+                }
+
+
                 ArrayList fingerID = (ArrayList) e.getPickedNode().getAttribute("fingers");
                 fingerNodes = new ArrayList();
-
-                lines.add(drawLine(e.getPickedNode(), succ));
                 for (int i = 0; i < fingerID.size(); i++) {
                     fingerNodes.add(getRelationships().get((Long) fingerID.get(i)));
-                    ((PNode) fingerNodes.get(i)).setPaint(Color.YELLOW);
-                    ((PNode) fingerNodes.get(i)).moveToFront();
-                    lines.add(drawCurvedLine(e.getPickedNode(), (PNode) fingerNodes.get(i)));
+                    if (((PNode) fingerNodes.get(i)) != null) {
+                        ((PNode) fingerNodes.get(i)).setPaint(Color.YELLOW);
+                        ((PNode) fingerNodes.get(i)).moveToFront();
+                        lines.add(drawCurvedLine(e.getPickedNode(), (PNode) fingerNodes.get(i)));
+                    }
+
                 }
+
                 e.getPickedNode().setPaint(Color.GREEN);
-
-                succ.setPaint(Color.BLUE);
-                succ.moveToFront();
-
                 e.getPickedNode().moveToFront();
                 edgeLayer.addChildren(lines);
             }
@@ -325,15 +354,21 @@ public class ChordCanvas extends PCanvas {
                             pred.moveToBack();
                         }
 
-                        succ.setPaint(Color.WHITE);
+                        if (succ != null) {
+                            succ.setPaint(Color.WHITE);
+                            succ.moveToBack();
+                        }
+
                         e.getPickedNode().moveToBack();
-                        succ.moveToBack();
+
                         edgeLayer.removeChildren(lines);
+
                         int fingersSize = fingerNodes.size();
                         for (int i = 0; i < fingersSize; i++) {
                             ((PNode) fingerNodes.get(i)).setPaint(Color.WHITE);
                             ((PNode) fingerNodes.get(i)).moveToBack();
                         }
+
                         int linesSize = lines.size();
                         for (int i = 0; i < linesSize; i++) {
                             lines.remove(0);
@@ -346,16 +381,20 @@ public class ChordCanvas extends PCanvas {
                             pred.moveToBack();
                         }
 
-                        succ.setPaint(Color.WHITE);
-                        something.moveToBack();
-                        succ.moveToBack();
+                        if (succ != null) {
+                            succ.setPaint(Color.WHITE);
+                            succ.moveToBack();
+                        }
 
+                        something.moveToBack();
                         edgeLayer.removeChildren(lines);
+
                         int fingersSize = fingerNodes.size();
                         for (int i = 0; i < fingersSize; i++) {
                             ((PNode) fingerNodes.get(i)).setPaint(Color.WHITE);
                             ((PNode) fingerNodes.get(i)).moveToBack();
                         }
+
                         int linesSize = lines.size();
                         for (int i = 0; i < linesSize; i++) {
                             lines.remove(0);
@@ -365,27 +404,41 @@ public class ChordCanvas extends PCanvas {
 
                         if (!e.getPickedNode().getAttribute("predecessor").equals("null")) {
                             pred = (PNode) getRelationships().get((Long) e.getPickedNode().getAttribute("predecessor"));
-                            lines.add(drawLine(e.getPickedNode(), pred));
-                            pred.setPaint(Color.RED);
-                            pred.moveToFront();
+                            if (pred != null) {
+                                lines.add(drawLine(e.getPickedNode(), pred));
+                                pred.setPaint(Color.RED);
+                                pred.moveToFront();
+                            }
                         } else {
                             pred = null;
                         }
 
-                        succ = (PNode) getRelationships().get((Long) e.getPickedNode().getAttribute("successor"));
+                        if (!e.getPickedNode().getAttribute("successor").equals("null")) {
+                            succ = (PNode) getRelationships().get((Long) e.getPickedNode().getAttribute("successor"));
+                            if (succ != null) {
+                                lines.add(drawLine(e.getPickedNode(), succ));
+                                succ.setPaint(Color.BLUE);
+                                succ.moveToFront();
+                            }
+                        } else {
+                            succ = null;
+                        }
+
                         ArrayList fingerID = (ArrayList) e.getPickedNode().getAttribute("fingers");
                         fingerNodes = new ArrayList();
 
-                        lines.add(drawLine(e.getPickedNode(), succ));
+
                         for (int i = 0; i < fingerID.size(); i++) {
                             fingerNodes.add(getRelationships().get((Long) fingerID.get(i)));
-                            ((PNode) fingerNodes.get(i)).setPaint(Color.YELLOW);
-                            ((PNode) fingerNodes.get(i)).moveToFront();
-                            lines.add(drawCurvedLine(e.getPickedNode(), (PNode) fingerNodes.get(i)));
+                            if (((PNode) fingerNodes.get(i)) != null) {
+                                ((PNode) fingerNodes.get(i)).setPaint(Color.YELLOW);
+                                ((PNode) fingerNodes.get(i)).moveToFront();
+                                lines.add(drawCurvedLine(e.getPickedNode(), (PNode) fingerNodes.get(i)));
+                            }
                         }
+
                         e.getPickedNode().setPaint(Color.GREEN);
-                        succ.setPaint(Color.BLUE);
-                        succ.moveToFront();
+
                         e.getPickedNode().moveToFront();
                         edgeLayer.addChildren(lines);
 
@@ -401,17 +454,28 @@ public class ChordCanvas extends PCanvas {
             super.mouseExited(e);
             if (e.getButton() == MouseEvent.NOBUTTON) {
                 e.getPickedNode().setPaint(Color.WHITE);
-                pred.setPaint(Color.WHITE);
-                succ.setPaint(Color.WHITE);
+                if (pred != null) {
+                    pred.setPaint(Color.WHITE);
+                    pred.moveToBack();
+                }
+
+                if (succ != null) {
+                    succ.setPaint(Color.WHITE);
+                    succ.moveToBack();
+                }
+
                 e.getPickedNode().moveToBack();
-                succ.moveToBack();
-                pred.moveToBack();
+
                 edgeLayer.removeChildren(lines);
+
                 int fingersSize = fingerNodes.size();
                 for (int i = 0; i < fingersSize; i++) {
-                    ((PNode) fingerNodes.get(i)).setPaint(Color.WHITE);
-                    ((PNode) fingerNodes.get(i)).moveToBack();
+                    if (fingerNodes.get(i) != null) {
+                        ((PNode) fingerNodes.get(i)).setPaint(Color.WHITE);
+                        ((PNode) fingerNodes.get(i)).moveToBack();
+                    }
                 }
+
                 int linesSize = lines.size();
                 for (int i = 0; i < linesSize; i++) {
                     lines.remove(0);

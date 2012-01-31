@@ -21,7 +21,6 @@ public class Main{
         NetworkHistory.printHistory();
         Thread gui = new GUIThread(new GUIRunnable(), "GUI");
         gui.start();
-        System.out.println("Done!");
     }
     
 }
