@@ -4,6 +4,8 @@
  */
 package peersim.gui;
 
+import javax.swing.UIManager;
+
 /**
  *
  * @author Dimitris
@@ -11,6 +13,12 @@ package peersim.gui;
 public class Main{
     
     public static void main(String[] args){
+        try {
+            UIManager.setLookAndFeel(
+                    UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception e) {
+            System.err.println("Error while setting the look and feel");
+        }
         Thread sim = new Thread(new SimulatorRunnable(args), "SIM");
         sim.start();
         try{
