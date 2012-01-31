@@ -5,7 +5,6 @@
 package peersim.gui;
 
 import java.awt.BorderLayout;
-import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.GridLayout;
 import javax.swing.JButton;
@@ -21,11 +20,10 @@ public class ChordFrame extends JFrame{
     public ChordFrame(){
         super("Chord Viz");
         this.setLayout(new BorderLayout());
-        this.setSize(new Dimension(1024, 768));
         this.setExtendedState(Frame.MAXIMIZED_BOTH);
         JPanel buttonPanel = new JPanel(new GridLayout(1,0));
-        JButton backButton = new JButton("Back");
-        JButton fwdButton = new JButton("Forward");
+        JButton backButton = new JButton("Previous Event");
+        JButton fwdButton = new JButton("Next Event");
         buttonPanel.add(backButton);
         buttonPanel.add(fwdButton);
         this.add(buttonPanel, BorderLayout.SOUTH);

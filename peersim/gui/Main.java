@@ -26,7 +26,7 @@ public class Main{
         } catch(InterruptedException e){
             System.err.println("ERROR: Thread "+ sim.getName() + " was interrupted!");
         }
-        NetworkHistory.printHistory();
+        //NetworkHistory.printHistory();
         Thread gui = new GUIThread(new GUIRunnable(), "GUI");
         gui.start();
     }
