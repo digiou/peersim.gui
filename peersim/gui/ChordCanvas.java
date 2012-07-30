@@ -20,7 +20,11 @@ import java.awt.geom.Point2D;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Hashtable;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.KeyStroke;
 import peersim.chord.ChordProtocol;
 import peersim.core.Node;
 
@@ -89,7 +93,25 @@ public class ChordCanvas extends PCanvas {
                 drawPrevious();
             }
         });
-
+        
+        Action drawOnce = new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                drawNext();
+            }
+        };
+        frwrd.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("RIGHT"), "drawOnce");
+        frwrd.getActionMap().put("drawOnce", drawOnce);
+        
+        Action drawPrevious = new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                drawPrevious();
+            }
+        };
+        back.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("LEFT"), "drawPrevious");
+        back.getActionMap().put("drawPrevious", drawPrevious);
+        
         this.setVisible(true);
     }
     
