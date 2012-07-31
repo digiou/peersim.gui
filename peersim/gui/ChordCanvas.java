@@ -20,11 +20,18 @@ import java.awt.geom.Point2D;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.JTextField;
 import javax.swing.KeyStroke;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
 import peersim.chord.ChordProtocol;
 import peersim.core.Node;
 
@@ -50,17 +57,20 @@ public class ChordCanvas extends PCanvas {
     private PLayer edgeLayer = new PLayer();
     private InfoPanel panel;
     private int current = 0;
+    private int step = 0;
     private HistoryObject currentNetwork;
     private JButton back, frwrd;
+    private JTextField stepField;
     private PBasicInputEventHandler colors, tooltip;
     private PText eventTooltipNode;
 
-    public ChordCanvas(InfoPanel inheritedPanel, JButton back, final JButton frwrd) {
+    public ChordCanvas(InfoPanel inheritedPanel, JButton back, final JButton frwrd, JTextField stepField) {
         super();
         setSize(SCREEN);
         this.panel = inheritedPanel;
         this.back = back;
         this.frwrd = frwrd;
+        this.stepField = stepField;
 
         this.back.setEnabled(false);
         if (historySize == 0) {
@@ -76,45 +86,47 @@ public class ChordCanvas extends PCanvas {
         camera.addChild(eventTooltipNode);
         eventTooltipNode.setOffset(0, 0);
         eventTooltipNode.setText("Current event: event @ time: time");
-        
+
         draw(current);
 
-        frwrd.addActionListener(new ActionListener() {
+        this.stepField.getDocument().addDocumentListener(new stepDocumentListener());
+        frwrd.setText("Next 1 event");
+        back.setText("Back 1 event");
 
+        frwrd.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                drawNext();
+                drawNext(step);
             }
         });
         back.addActionListener(new ActionListener() {
-
             @Override
             public void actionPerformed(ActionEvent e) {
-                drawPrevious();
+                drawPrevious(step);
             }
         });
-        
+
         Action drawOnce = new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                drawNext();
+                drawNext(step);
             }
         };
         frwrd.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("RIGHT"), "drawOnce");
         frwrd.getActionMap().put("drawOnce", drawOnce);
-        
+
         Action drawPrevious = new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                drawPrevious();
+                drawPrevious(step);
             }
         };
         back.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("LEFT"), "drawPrevious");
         back.getActionMap().put("drawPrevious", drawPrevious);
-        
+
         this.setVisible(true);
     }
-    
+
     private Hashtable<Long, PNode> getRelationships() {
         return hashTable;
     }
@@ -256,11 +268,15 @@ public class ChordCanvas extends PCanvas {
         removeInfoFromPanel();
     }
 
-    private void drawNext() {
+    private void drawNext(int steps) {
         clearCanvas();
-        current++;
+        if(current + steps <= historySize){
+            current += steps;
+        } else {
+            current = historySize;
+        }
         draw(current);
-        if (current == 1) {
+        if (current >= 1) {
             back.setEnabled(true);
         }
         if (current == historySize) {
@@ -268,14 +284,18 @@ public class ChordCanvas extends PCanvas {
         }
     }
 
-    private void drawPrevious() {
+    private void drawPrevious(int steps) {
         clearCanvas();
-        current--;
+        if(current - steps >= 0){
+            current -= steps;
+        } else {
+            current = 0;
+        }
         draw(current);
         if (current == 0) {
             back.setEnabled(false);
         }
-        if (current == historySize - 1) {
+        if (current <= historySize - 1) {
             frwrd.setEnabled(true);
         }
     }
@@ -530,6 +550,52 @@ public class ChordCanvas extends PCanvas {
         @Override
         public void mouseExited(PInputEvent e) {
             tooltipNode.setVisible(false);
+        }
+    }
+
+    private class stepDocumentListener implements DocumentListener {
+
+        String content;
+
+        @Override
+        public void insertUpdate(DocumentEvent de) {
+            try {
+                content = de.getDocument().getText(0, de.getDocument().getLength());
+                step = Integer.parseInt(content);
+                if (step == 1) {
+                    frwrd.setText("Next " + step + " event");
+                    back.setText("Back " + step + " event");
+                } else {
+                    frwrd.setText("Next " + step + " events");
+                    back.setText("Back " + step + " events");
+                }
+            } catch (BadLocationException ex) {
+                Logger.getLogger(ChordCanvas.class.getName()).log(Level.SEVERE, null, ex);
+            }
+
+        }
+
+        @Override
+        public void removeUpdate(DocumentEvent de) {
+            try {
+                content = de.getDocument().getText(0, de.getDocument().getLength());
+                if (content.equals("") || content.equals("1")) {
+                    step = 1;
+                    frwrd.setText("Next 1 event");
+                    back.setText("Back 1 event");
+                } else {
+                    step = Integer.parseInt(content);
+                    frwrd.setText("Next " + step + " events");
+                    back.setText("Back " + step + " events");
+                }
+            } catch (BadLocationException ex) {
+                Logger.getLogger(ChordCanvas.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+
+        @Override
+        public void changedUpdate(DocumentEvent de) {
+            throw new UnsupportedOperationException("Not supported yet.");
         }
     }
 }
