@@ -363,13 +363,13 @@ public static void nextExperiment()
 		exit = executeNext();
 	}
         System.out.println("Simulation Ending!");
-        NetworkHistory.addToHistory(Network.getNodes(), Network.size(), CommonState.getTime(), "final");
 	// analysis after the simulation
 	CommonState.setPhase(CommonState.POST_SIMULATION);
 	for(int j=0; j<controls.length; ++j)
 	{
 		if( ctrlSchedules[j].fin ) controls[j].execute();
 	}
+        NetworkHistory.addToHistory(Network.getNodes(), Network.size(), CommonState.getTime(), "final");
 
 }
 

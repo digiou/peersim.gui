@@ -34,6 +34,7 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import peersim.chord.ChordProtocol;
 import peersim.core.Node;
+import java.lang.Long;
 
 /**
  *
@@ -48,16 +49,17 @@ public class ChordCanvas extends PCanvas {
     private int width = SCREEN.width;
     private int height = SCREEN.height;
     private int radius = width / 2;
+    private int current = 0;
+    private int step = 1;
     private float cx = margin + radius;
     private float cy = margin + radius;
+    private long pinnedNodeSimID = -1;
     private PCamera camera;
     private Point2D epicenter = new Point2D.Double(cx, cy);
     private Hashtable<Long, PNode> hashTable;
     private PLayer nodeLayer = this.getLayer();
     private PLayer edgeLayer = new PLayer();
     private InfoPanel panel;
-    private int current = 0;
-    private int step = 1;
     private HistoryObject currentNetwork;
     private JButton back, frwrd;
     private JTextField stepField;
@@ -88,7 +90,7 @@ public class ChordCanvas extends PCanvas {
         eventTooltipNode.setText("Current event: event @ time: time");
 
         draw(current);
-
+        
         this.stepField.getDocument().addDocumentListener(new stepDocumentListener());
         frwrd.setText("Next 1 event");
         back.setText("Back 1 event");
@@ -179,6 +181,7 @@ public class ChordCanvas extends PCanvas {
             }
         }
         node.addAttribute("chordId", hcp.chordId);
+        node.addAttribute("simID", SimID);
     }
 
     private PPath nodePosition(double angle) {
@@ -270,7 +273,7 @@ public class ChordCanvas extends PCanvas {
 
     private void drawNext(int steps) {
         clearCanvas();
-        if(current + steps <= historySize){
+        if (current + steps <= historySize) {
             current += steps;
         } else {
             current = historySize;
@@ -286,7 +289,7 @@ public class ChordCanvas extends PCanvas {
 
     private void drawPrevious(int steps) {
         clearCanvas();
-        if(current - steps >= 0){
+        if (current - steps >= 0) {
             current -= steps;
         } else {
             current = 0;
@@ -302,7 +305,7 @@ public class ChordCanvas extends PCanvas {
 
     public class ChordMouseEventHandler extends PBasicInputEventHandler {
 
-        PInputEventFilter filter = new PInputEventFilter();
+        PInputEventFilter filter;
         ArrayList lines = new ArrayList();
         Boolean selectedSomething = true;
         PNode something;
@@ -310,7 +313,59 @@ public class ChordCanvas extends PCanvas {
         ArrayList fingerNodes;
 
         public ChordMouseEventHandler() {
+            filter = new PInputEventFilter();
             filter.setOrMask(InputEvent.BUTTON1_MASK);
+            if (pinnedNodeSimID != -1) {
+                if (getRelationships().get(pinnedNodeSimID) != null) {
+                    selectedSomething = false;
+                    filter.setAcceptsMouseEntered(false);
+                    filter.setAcceptsMouseExited(false);
+                    something = (PNode) getRelationships().get(pinnedNodeSimID);
+                    if (!something.getAttribute("predecessor").equals("null")) {
+                        pred = (PNode) getRelationships().get((Long) something.getAttribute("predecessor"));
+                        if (pred != null) {
+                            lines.add(drawLine(something, pred));
+                            pred.setPaint(Color.RED);
+                            pred.moveToFront();
+                        }
+                    } else {
+                        pred = null;
+                    }
+
+                    if (!something.getAttribute("successor").equals("null")) {
+                        succ = (PNode) getRelationships().get((Long) something.getAttribute("successor"));
+                        if (succ != null) {
+                            lines.add(drawLine(something, succ));
+                            succ.setPaint(Color.BLUE);
+                            succ.moveToFront();
+                        }
+                    } else {
+                        succ = null;
+                    }
+
+                    ArrayList fingerID = (ArrayList) something.getAttribute("fingers");
+                    fingerNodes = new ArrayList();
+                    for (int i = 0; i < fingerID.size(); i++) {
+                        if (getRelationships().get((Long) fingerID.get(i)) != null) {
+                            fingerNodes.add(getRelationships().get((Long) fingerID.get(i)));
+                        }
+                    }
+                    int size = fingerNodes.size();
+                    for (int i = 0; i < size; i++) {
+                        ((PNode) fingerNodes.get(i)).setPaint(Color.YELLOW);
+                        ((PNode) fingerNodes.get(i)).moveToFront();
+                        lines.add(drawCurvedLine(something, (PNode) fingerNodes.get(i)));
+                    }
+
+                    something.setPaint(Color.GREEN);
+
+                    something.moveToFront();
+                    edgeLayer.addChildren(lines);
+                    giveInfoToPanel(something, succ, pred, fingerNodes);
+                } else {
+                    pinnedNodeSimID = -1;
+                }
+            }
             setEventFilter(filter);
         }
 
@@ -369,12 +424,14 @@ public class ChordCanvas extends PCanvas {
             if (e.getButton() == MouseEvent.BUTTON1) {
                 if (selectedSomething) {
                     something = e.getPickedNode();
+                    pinnedNodeSimID = (long) e.getPickedNode().getAttribute("simID");
                     filter.setAcceptsMouseExited(false);
                     filter.setAcceptsMouseEntered(false);
                     selectedSomething = false;
                     giveInfoToPanel(e.getPickedNode(), succ, pred, fingerNodes);
                 } else {
-                    if (something.equals(e.getPickedNode())) {
+                    if (something.equals(e.getPickedNode()) || pinnedNodeSimID == (long) e.getPickedNode().getAttribute("simID")) {
+                        pinnedNodeSimID = -1;
                         filter.setAcceptsMouseExited(true);
                         filter.setAcceptsMouseEntered(true);
                         selectedSomething = true;
@@ -479,6 +536,7 @@ public class ChordCanvas extends PCanvas {
                         edgeLayer.addChildren(lines);
 
                         something = e.getPickedNode();
+                        pinnedNodeSimID = (long) e.getPickedNode().getAttribute("simID");
                         giveInfoToPanel(e.getPickedNode(), succ, pred, fingerNodes);
                     }
                 }
