@@ -29,6 +29,11 @@ public class Main{
         //NetworkHistory.printHistory();
         Thread gui = new GUIThread(new GUIRunnable(), "GUI");
         gui.start();
+        try{
+            gui.join();
+        } catch(InterruptedException e){
+            System.err.println("ERROR: Thread "+ gui.getName() + " was interrupted!");
+        }
     }
     
 }

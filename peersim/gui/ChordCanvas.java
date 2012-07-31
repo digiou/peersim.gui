@@ -57,7 +57,7 @@ public class ChordCanvas extends PCanvas {
     private PLayer edgeLayer = new PLayer();
     private InfoPanel panel;
     private int current = 0;
-    private int step = 0;
+    private int step = 1;
     private HistoryObject currentNetwork;
     private JButton back, frwrd;
     private JTextField stepField;
