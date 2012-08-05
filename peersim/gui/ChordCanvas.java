@@ -51,7 +51,6 @@ public class ChordCanvas extends PCanvas {
     private int radius = width / 2;
     private int current = 0;
     private int step = 1;
-    private int ellipseWidth = 10;
     private float cx = margin + radius;
     private float cy = margin + radius;
     private long pinnedNodeSimID = -1;
