@@ -51,6 +51,7 @@ public class ChordCanvas extends PCanvas {
     private int radius = width / 2;
     private int current = 0;
     private int step = 1;
+    private int ellipseWidth = 10;
     private float cx = margin + radius;
     private float cy = margin + radius;
     private long pinnedNodeSimID = -1;
@@ -175,9 +176,11 @@ public class ChordCanvas extends PCanvas {
 
         node.addAttribute("fingers", new ArrayList());
         int SIZE = hcp.fingerTable.length;
+        long previousID = 0;
         for (int i = 0; i < SIZE; i++) {
-            if (!(hcp.fingerTable[i] == succId || hcp.fingerTable[i] == SimID)) {
+            if (!(hcp.fingerTable[i] == succId || hcp.fingerTable[i] == SimID || hcp.fingerTable[i] == previousID)) {
                 ((ArrayList) node.getAttribute("fingers")).add(hcp.fingerTable[i]);
+                previousID = hcp.fingerTable[i];
             }
         }
         node.addAttribute("chordId", hcp.chordId);
@@ -207,15 +210,15 @@ public class ChordCanvas extends PCanvas {
         return line;
     }
 
-    private PPath drawCurvedLine(PNode start, PNode end) {
+    private PPath drawCurvedLine(PNode start, PNode end, double numerator, double denumerator) {
         Point2D centerStart = start.getFullBoundsReference().getCenter2D();
         Point2D centerEnd = end.getFullBoundsReference().getCenter2D();
-        int i = 0;
-        Point2D midpoint = midpoint(centerStart, centerEnd);
-        Point2D newPoint = pointBetween(midpoint, epicenter);
+        Point2D midPoint = midpoint(centerStart, centerEnd);
+        double div = (numerator / denumerator);
+        Point2D newPoint = pointBetween(midPoint, epicenter, div);
         PPath line = new PPath();
         line.moveTo((float) centerStart.getX(), (float) centerStart.getY());
-        line.curveTo((float) newPoint.getX(), (float) newPoint.getY(), (float) newPoint.getX(), (float) newPoint.getY(), (float) centerEnd.getX(), (float) centerEnd.getY());
+        line.curveTo((float) centerStart.getX(), (float) centerStart.getY(), (float) newPoint.getX(), (float) newPoint.getY(), (float) centerEnd.getX(), (float) centerEnd.getY());
         line.setStroke(new PFixedWidthStroke());
         return line;
     }
@@ -225,9 +228,9 @@ public class ChordCanvas extends PCanvas {
                 p1.getY() + (p2.getY() - p1.getY()) / 2);
     }
 
-    private Point2D pointBetween(Point2D p1, Point2D p2) {
-        return new Point2D.Double(p1.getX() + (p2.getX() - p1.getX()) / 17,
-                p1.getY() + (p2.getY() - p1.getY()) / 17);
+    private Point2D pointBetween(Point2D p1, Point2D p2, double div) {        
+        return new Point2D.Double(p1.getX() + (p2.getX() - p1.getX()) / div,
+                p1.getY() + (p2.getY() - p1.getY()) / div);
     }
 
     public String tooltipText(PNode aNode) {
@@ -354,7 +357,7 @@ public class ChordCanvas extends PCanvas {
                     for (int i = 0; i < size; i++) {
                         ((PNode) fingerNodes.get(i)).setPaint(Color.YELLOW);
                         ((PNode) fingerNodes.get(i)).moveToFront();
-                        lines.add(drawCurvedLine(something, (PNode) fingerNodes.get(i)));
+                        lines.add(drawCurvedLine(something, (PNode) fingerNodes.get(i), size+1, i+1));
                     }
 
                     something.setPaint(Color.GREEN);
@@ -409,7 +412,7 @@ public class ChordCanvas extends PCanvas {
                 for (int i = 0; i < size; i++) {
                     ((PNode) fingerNodes.get(i)).setPaint(Color.YELLOW);
                     ((PNode) fingerNodes.get(i)).moveToFront();
-                    lines.add(drawCurvedLine(e.getPickedNode(), (PNode) fingerNodes.get(i)));
+                    lines.add(drawCurvedLine(e.getPickedNode(), (PNode) fingerNodes.get(i), size+1, i+1));
                 }
 
                 e.getPickedNode().setPaint(Color.GREEN);
@@ -527,7 +530,8 @@ public class ChordCanvas extends PCanvas {
                         for (int i = 0; i < size; i++) {
                             ((PNode) fingerNodes.get(i)).setPaint(Color.YELLOW);
                             ((PNode) fingerNodes.get(i)).moveToFront();
-                            lines.add(drawCurvedLine(e.getPickedNode(), (PNode) fingerNodes.get(i)));
+                            ((PNode) fingerNodes.get(i)).getFullBoundsReference().getCenter2D().getX();
+                            lines.add(drawCurvedLine(e.getPickedNode(), (PNode) fingerNodes.get(i), size+1, i+1));
                         }
 
                         e.getPickedNode().setPaint(Color.GREEN);
