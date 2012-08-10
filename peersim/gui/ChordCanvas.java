@@ -31,10 +31,6 @@ import javax.swing.KeyStroke;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.BadLocationException;
-import javax.swing.text.Document;
-import peersim.chord.ChordProtocol;
-import peersim.core.Node;
-import java.lang.Long;
 
 /**
  *
@@ -108,14 +104,14 @@ public class ChordCanvas extends PCanvas {
             }
         });
 
-        Action drawOnce = new AbstractAction() {
+        Action drawNext = new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 drawNext(step);
             }
         };
-        frwrd.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("RIGHT"), "drawOnce");
-        frwrd.getActionMap().put("drawOnce", drawOnce);
+        frwrd.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("RIGHT"), "drawNext");
+        frwrd.getActionMap().put("drawNext", drawNext);
 
         Action drawPrevious = new AbstractAction() {
             @Override
@@ -529,7 +525,6 @@ public class ChordCanvas extends PCanvas {
                         for (int i = 0; i < size; i++) {
                             ((PNode) fingerNodes.get(i)).setPaint(Color.YELLOW);
                             ((PNode) fingerNodes.get(i)).moveToFront();
-                            ((PNode) fingerNodes.get(i)).getFullBoundsReference().getCenter2D().getX();
                             lines.add(drawCurvedLine(e.getPickedNode(), (PNode) fingerNodes.get(i), size+1, i+1));
                         }
 
