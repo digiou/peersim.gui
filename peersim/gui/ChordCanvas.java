@@ -9,6 +9,7 @@ import edu.umd.cs.piccolo.event.PInputEvent;
 import edu.umd.cs.piccolo.event.PInputEventFilter;
 import edu.umd.cs.piccolo.nodes.PPath;
 import edu.umd.cs.piccolo.nodes.PText;
+import edu.umd.cs.piccolo.util.PBounds;
 import edu.umd.cs.piccolox.util.PFixedWidthStroke;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -17,6 +18,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Hashtable;
@@ -144,8 +147,7 @@ public class ChordCanvas extends PCanvas {
         for (int i = 0; i < currentNetwork.size(); i++) {
             HistoryChordProtocol hcp = (HistoryChordProtocol) currentNetwork.getNode(i).getProtocol();
             double angle = getAngle(hcp);
-            PPath node = nodePosition(angle);
-            node.setStroke(new PFixedWidthStroke());
+            Circle node = new Circle(angle);
             nodeLayer.addChild(node);
             storeInfo(node, hcp, currentNetwork.getNode(i).getID());
             hashTable.put(currentNetwork.getNode(i).getID(), node);
@@ -180,12 +182,6 @@ public class ChordCanvas extends PCanvas {
         }
         node.addAttribute("chordId", hcp.chordId);
         node.addAttribute("simID", SimID);
-    }
-
-    private PPath nodePosition(double angle) {
-        float x = cx + (float) (radius * Math.sin(angle));
-        float y = cy - (float) (radius * Math.cos(angle));
-        return PPath.createEllipse(x, y, 10, 10);
     }
 
     private double getAngle(HistoryChordProtocol hcp) {
@@ -298,6 +294,17 @@ public class ChordCanvas extends PCanvas {
         }
         if (current <= historySize - 1) {
             frwrd.setEnabled(true);
+        }
+    }
+    
+    private class Circle extends PPath{
+        Circle(double angle){
+            setPaint(Color.white);
+            setStrokePaint(Color.black);
+            setStroke(new PFixedWidthStroke());
+            float x = cx + (float) (radius * Math.sin(angle));
+            float y = cy - (float) (radius * Math.cos(angle));
+            setPathToEllipse(x, y, 10, 10);
         }
     }
 
