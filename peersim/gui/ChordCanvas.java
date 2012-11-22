@@ -429,13 +429,13 @@ public class ChordCanvas extends PCanvas {
             if (e.getButton() == MouseEvent.BUTTON1) {
                 if (selectedSomething) {
                     something = e.getPickedNode();
-                    pinnedNodeSimID = (long) e.getPickedNode().getAttribute("simID");
+                    pinnedNodeSimID = (Long) e.getPickedNode().getAttribute("simID");
                     filter.setAcceptsMouseExited(false);
                     filter.setAcceptsMouseEntered(false);
                     selectedSomething = false;
                     giveInfoToPanel(e.getPickedNode(), succ, pred, fingerNodes);
                 } else {
-                    if (something.equals(e.getPickedNode()) || pinnedNodeSimID == (long) e.getPickedNode().getAttribute("simID")) {
+                    if (something.equals(e.getPickedNode()) || pinnedNodeSimID == (Long) e.getPickedNode().getAttribute("simID")) {
                         pinnedNodeSimID = -1;
                         filter.setAcceptsMouseExited(true);
                         filter.setAcceptsMouseEntered(true);
@@ -541,7 +541,7 @@ public class ChordCanvas extends PCanvas {
                         edgeLayer.addChildren(lines);
 
                         something = e.getPickedNode();
-                        pinnedNodeSimID = (long) e.getPickedNode().getAttribute("simID");
+                        pinnedNodeSimID = (Long) e.getPickedNode().getAttribute("simID");
                         giveInfoToPanel(e.getPickedNode(), succ, pred, fingerNodes);
                     }
                 }
