@@ -38,13 +38,10 @@ import javax.swing.text.BadLocationException;
  */
 public class ChordCanvas extends PCanvas {
 
-    private Dimension SCREEN = new Dimension(1024, 768);
+    private Dimension SCREEN = new Dimension(800, 600);
     private int historySize = NetworkHistory.getSize() - 1;
     private int margin = 50;
-    private int chordPosition;
-    private int width = SCREEN.width;
-    private int height = SCREEN.height;
-    private int radius = width / 2;
+    private int radius = SCREEN.width / 2;
     private int current = 0;
     private int step = 1;
     private float cx = margin + radius;
