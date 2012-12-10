@@ -63,7 +63,7 @@ public class ChordCanvas extends PCanvas {
     private JButton back, frwrd;
     private JTextField stepField;
     private PBasicInputEventHandler colors, tooltip;
-    private PText eventTooltipNode;
+    private PText eventTooltipNode, selectedTooltipNode;
 
     public ChordCanvas(InfoPanel inheritedPanel, JButton back, final JButton frwrd, JTextField stepField) {
         super();
@@ -87,6 +87,12 @@ public class ChordCanvas extends PCanvas {
         camera.addChild(eventTooltipNode);
         eventTooltipNode.setOffset(0, 0);
         eventTooltipNode.setText("Current event: event @ time: time");
+        
+        selectedTooltipNode = new PText();
+        selectedTooltipNode.setPickable(false);
+        camera.addChild(selectedTooltipNode);
+        selectedTooltipNode.setOffset(0,15);
+        selectedTooltipNode.setVisible(false);
 
         draw(current);
         
@@ -585,34 +591,31 @@ public class ChordCanvas extends PCanvas {
 
     private class TooltipHandler extends PBasicInputEventHandler {
 
-        final PText tooltipNode = new PText();
 
         public TooltipHandler() {
-            tooltipNode.setPickable(false);
-            camera.addChild(tooltipNode);
         }
 
         @Override
         public void mouseEntered(PInputEvent e) {
             PNode node = e.getPickedNode();
-            tooltipNode.setText(tooltipText(node));
-            tooltipNode.setVisible(true);
+            selectedTooltipNode.setText(tooltipText(node));
+            selectedTooltipNode.setVisible(true);
         }
 
         @Override
         public void mouseMoved(PInputEvent e) {
-            if (tooltipNode.getVisible()) {
+            if (selectedTooltipNode.getVisible()) {
                 PNode picked = e.getPickedNode();
                 Point2D point = e.getPositionRelativeTo(picked);
                 picked.localToParent(point);
                 point.setLocation(0, 15);
-                tooltipNode.setOffset(point);
+                selectedTooltipNode.setOffset(point);
             }
         }
 
         @Override
         public void mouseExited(PInputEvent e) {
-            tooltipNode.setVisible(false);
+            selectedTooltipNode.setVisible(false);
         }
     }
 
