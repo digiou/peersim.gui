@@ -9,7 +9,6 @@ import edu.umd.cs.piccolo.event.PInputEvent;
 import edu.umd.cs.piccolo.event.PInputEventFilter;
 import edu.umd.cs.piccolo.nodes.PPath;
 import edu.umd.cs.piccolo.nodes.PText;
-import edu.umd.cs.piccolo.util.PBounds;
 import edu.umd.cs.piccolox.util.PFixedWidthStroke;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -18,11 +17,9 @@ import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.math.BigInteger;
 import java.util.ArrayList;
-import java.util.Hashtable;
+import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
@@ -41,13 +38,10 @@ import javax.swing.text.BadLocationException;
  */
 public class ChordCanvas extends PCanvas {
 
-    private Dimension SCREEN = new Dimension(1024, 768);
+    private Dimension SCREEN = new Dimension(800, 600);
     private int historySize = NetworkHistory.getSize() - 1;
     private int margin = 50;
-    private int chordPosition;
-    private int width = SCREEN.width;
-    private int height = SCREEN.height;
-    private int radius = width / 2;
+    private int radius = SCREEN.width / 2;
     private int current = 0;
     private int step = 1;
     private float cx = margin + radius;
@@ -55,7 +49,7 @@ public class ChordCanvas extends PCanvas {
     private long pinnedNodeSimID = -1;
     private PCamera camera;
     private Point2D epicenter = new Point2D.Double(cx, cy);
-    private Hashtable<Long, PNode> hashTable;
+    private HashMap<Long, PNode> hashmap;
     private PLayer nodeLayer = this.getLayer();
     private PLayer edgeLayer = new PLayer();
     private InfoPanel panel;
@@ -134,14 +128,14 @@ public class ChordCanvas extends PCanvas {
         this.setVisible(true);
     }
 
-    private Hashtable<Long, PNode> getRelationships() {
-        return hashTable;
+    private HashMap<Long, PNode> getRelationships() {
+        return hashmap;
     }
 
     private void draw(int pointer) {
         currentNetwork = NetworkHistory.getEntry(pointer);
         eventTooltipNode.setText("Current event: " + currentNetwork.getReason() + " @time: " + currentNetwork.getTime());
-        hashTable = new Hashtable<Long, PNode>(currentNetwork.size());
+        hashmap = new HashMap<Long, PNode>(currentNetwork.size());
         drawNodes(nodeLayer);
         colors = new ChordMouseEventHandler();
         tooltip = new TooltipHandler();
@@ -156,7 +150,7 @@ public class ChordCanvas extends PCanvas {
             Circle node = new Circle(angle);
             nodeLayer.addChild(node);
             storeInfo(node, hcp, currentNetwork.getNode(i).getID());
-            hashTable.put(currentNetwork.getNode(i).getID(), node);
+            hashmap.put(currentNetwork.getNode(i).getID(), node);
         }
     }
 
