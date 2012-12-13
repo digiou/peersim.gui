@@ -597,17 +597,6 @@ public class ChordCanvas extends PCanvas {
         }
 
         @Override
-        public void mouseMoved(PInputEvent e) {
-            if (selectedTooltipNode.getVisible()) {
-                PNode picked = e.getPickedNode();
-                Point2D point = e.getPositionRelativeTo(picked);
-                picked.localToParent(point);
-                point.setLocation(0, 15);
-                selectedTooltipNode.setOffset(point);
-            }
-        }
-
-        @Override
         public void mouseExited(PInputEvent e) {
             selectedTooltipNode.setVisible(false);
         }
