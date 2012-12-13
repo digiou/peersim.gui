@@ -81,26 +81,28 @@ public class ChordCanvas extends PCanvas {
         camera.addChild(eventTooltipNode);
         eventTooltipNode.setOffset(0, 0);
         eventTooltipNode.setText("Current event: event @ time: time");
-        
+
         selectedTooltipNode = new PText();
         selectedTooltipNode.setPickable(false);
         camera.addChild(selectedTooltipNode);
-        selectedTooltipNode.setOffset(0,15);
+        selectedTooltipNode.setOffset(0, 15);
         selectedTooltipNode.setVisible(false);
 
         draw(current);
-        
+
         this.stepField.getDocument().addDocumentListener(new stepDocumentListener());
         frwrd.setText("Next 1 event");
         back.setText("Back 1 event");
 
         frwrd.addActionListener(new ActionListener() {
+
             @Override
             public void actionPerformed(ActionEvent e) {
                 drawNext(step);
             }
         });
         back.addActionListener(new ActionListener() {
+
             @Override
             public void actionPerformed(ActionEvent e) {
                 drawPrevious(step);
@@ -108,6 +110,7 @@ public class ChordCanvas extends PCanvas {
         });
 
         Action drawNext = new AbstractAction() {
+
             @Override
             public void actionPerformed(ActionEvent e) {
                 drawNext(step);
@@ -117,6 +120,7 @@ public class ChordCanvas extends PCanvas {
         frwrd.getActionMap().put("drawNext", drawNext);
 
         Action drawPrevious = new AbstractAction() {
+
             @Override
             public void actionPerformed(ActionEvent e) {
                 drawPrevious(step);
@@ -219,7 +223,7 @@ public class ChordCanvas extends PCanvas {
                 p1.getY() + (p2.getY() - p1.getY()) / 2);
     }
 
-    private Point2D pointBetween(Point2D p1, Point2D p2, double div) {        
+    private Point2D pointBetween(Point2D p1, Point2D p2, double div) {
         return new Point2D.Double(p1.getX() + (p2.getX() - p1.getX()) / div,
                 p1.getY() + (p2.getY() - p1.getY()) / div);
     }
@@ -296,9 +300,10 @@ public class ChordCanvas extends PCanvas {
             frwrd.setEnabled(true);
         }
     }
-    
-    private class Circle extends PPath{
-        Circle(double angle){
+
+    private class Circle extends PPath {
+
+        Circle(double angle) {
             setPaint(Color.white);
             setStrokePaint(Color.black);
             setStroke(new PFixedWidthStroke());
@@ -359,7 +364,7 @@ public class ChordCanvas extends PCanvas {
                     for (int i = 0; i < size; i++) {
                         ((PNode) fingerNodes.get(i)).setPaint(Color.YELLOW);
                         ((PNode) fingerNodes.get(i)).moveToFront();
-                        lines.add(drawCurvedLine(something, (PNode) fingerNodes.get(i), size+1, i+1));
+                        lines.add(drawCurvedLine(something, (PNode) fingerNodes.get(i), size + 1, i + 1));
                     }
 
                     something.setPaint(Color.GREEN);
@@ -414,7 +419,7 @@ public class ChordCanvas extends PCanvas {
                 for (int i = 0; i < size; i++) {
                     ((PNode) fingerNodes.get(i)).setPaint(Color.YELLOW);
                     ((PNode) fingerNodes.get(i)).moveToFront();
-                    lines.add(drawCurvedLine(e.getPickedNode(), (PNode) fingerNodes.get(i), size+1, i+1));
+                    lines.add(drawCurvedLine(e.getPickedNode(), (PNode) fingerNodes.get(i), size + 1, i + 1));
                 }
 
                 e.getPickedNode().setPaint(Color.GREEN);
@@ -532,7 +537,7 @@ public class ChordCanvas extends PCanvas {
                         for (int i = 0; i < size; i++) {
                             ((PNode) fingerNodes.get(i)).setPaint(Color.YELLOW);
                             ((PNode) fingerNodes.get(i)).moveToFront();
-                            lines.add(drawCurvedLine(e.getPickedNode(), (PNode) fingerNodes.get(i), size+1, i+1));
+                            lines.add(drawCurvedLine(e.getPickedNode(), (PNode) fingerNodes.get(i), size + 1, i + 1));
                         }
 
                         e.getPickedNode().setPaint(Color.GREEN);
@@ -567,11 +572,13 @@ public class ChordCanvas extends PCanvas {
 
                 edgeLayer.removeChildren(lines);
 
-                int fingersSize = fingerNodes.size();
-                for (int i = 0; i < fingersSize; i++) {
-                    if (fingerNodes.get(i) != null) {
-                        ((PNode) fingerNodes.get(i)).setPaint(Color.WHITE);
-                        ((PNode) fingerNodes.get(i)).moveToBack();
+                if (fingerNodes != null) {
+                    int fingersSize = fingerNodes.size();
+                    for (int i = 0; i < fingersSize; i++) {
+                        if (fingerNodes.get(i) != null) {
+                            ((PNode) fingerNodes.get(i)).setPaint(Color.WHITE);
+                            ((PNode) fingerNodes.get(i)).moveToBack();
+                        }
                     }
                 }
 
@@ -584,7 +591,6 @@ public class ChordCanvas extends PCanvas {
     }
 
     private class TooltipHandler extends PBasicInputEventHandler {
-
 
         public TooltipHandler() {
         }
