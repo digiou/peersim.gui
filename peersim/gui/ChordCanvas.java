@@ -258,7 +258,7 @@ public class ChordCanvas extends PCanvas {
     }
 
     private void removeInfoFromPanel() {
-        panel.resetPanel();
+        panel.resetInfo();
     }
 
     private void clearCanvas() {
