@@ -2,7 +2,6 @@ package peersim.gui;
 
 import edu.umd.cs.piccolo.PNode;
 import java.awt.Color;
-import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -10,6 +9,7 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import net.miginfocom.swing.MigLayout;
 
 /**
  *
@@ -23,50 +23,31 @@ public class InfoPanel extends JPanel {
     private JLabel NodeId = new JLabel("none");
     private JLabel PredId = new JLabel("none");
     private JLabel SuccId = new JLabel("none");
-    private JLabel FingId = new JLabel("Finger node IDs:");
+    private JLabel FingLabel = new JLabel("Finger node IDs:");
     private JLabel stepLabel = new JLabel("Steps:");
     private JButton backButton = new JButton("Back 1 event");
     private JButton fwdButton = new JButton("Move 1 event");
-    private JTextField stepTextField = new JTextField("1");
-    private JPanel NodePanel = new JPanel(new GridLayout(0, 1));
-    private JPanel PredPanel = new JPanel(new GridLayout(0, 1));
-    private JPanel SuccPanel = new JPanel(new GridLayout(0, 1));
-    private JPanel FingPanel = new JPanel(new GridLayout(0, 1));
-    private JPanel MasterPanel = new JPanel(new GridLayout(0, 1));
-    private JPanel ButtonPanel = new JPanel(new FlowLayout());
-    private JPanel StepPanel = new JPanel(new GridLayout(1,0));
-    private JPanel controlPanel = new JPanel(new GridLayout(0,1));
-    private Color originalColor;
+    private JTextField stepTextField = new JTextField();
+    private ArrayList<JLabel> componentList = new ArrayList<JLabel>();
+    private JPanel FingPanel = new JPanel(new MigLayout("wrap 1"));
 
     public InfoPanel() {
         super();
-        setLayout(new GridLayout(0, 1));
-        originalColor = PredPanel.getBackground();
-        
-        ButtonPanel.add(backButton);
-        ButtonPanel.add(fwdButton);
-        
-        StepPanel.add(stepLabel);
-        StepPanel.add(stepTextField);
-        controlPanel.add(StepPanel);
-        controlPanel.add(ButtonPanel);
-        MasterPanel.add(controlPanel);
-        
-        NodePanel.add(NodeLabel);
-        NodePanel.add(NodeId);
-        MasterPanel.add(NodePanel);
+        setLayout(new MigLayout("wrap 1"));
+        stepTextField.setText("1");
 
-        PredPanel.add(PredLabel);
-        PredPanel.add(PredId);
-        MasterPanel.add(PredPanel);
-
-        SuccPanel.add(SuccLabel);
-        SuccPanel.add(SuccId);
-        MasterPanel.add(SuccPanel);
-
-        FingPanel.add(FingId);
-        MasterPanel.add(FingPanel);
-        add(MasterPanel);
+        add(stepLabel, "split 2");
+        add(stepTextField, "grow");
+        add(backButton, "split 2");
+        add(fwdButton);
+        add(NodeLabel);
+        add(NodeId);
+        add(PredLabel);
+        add(PredId);
+        add(SuccLabel);
+        add(SuccId);
+        add(FingLabel);
+        add(FingPanel, "gapleft");
         setVisible(true);
     }
 
@@ -79,71 +60,51 @@ public class InfoPanel extends JPanel {
     }
 
     public void setPredId(String newID) {
-        PredPanel.setBackground(Color.RED);
-        PredLabel.setForeground(Color.WHITE);
-        PredId.setForeground(Color.WHITE);
         PredId.setText(newID);
     }
 
     public void resetPredId() {
-        PredPanel.setBackground(originalColor);
-        PredLabel.setForeground(Color.BLACK);
-        PredId.setForeground(Color.BLACK);
         PredId.setText("none");
     }
 
     public void setSuccId(String newID) {
-        SuccPanel.setBackground(Color.BLUE);
-        SuccLabel.setForeground(Color.WHITE);
-        SuccId.setForeground(Color.WHITE);
         SuccId.setText(newID);
     }
 
     public void resetSuccId() {
-        SuccPanel.setBackground(originalColor);
-        SuccLabel.setForeground(Color.BLACK);
-        SuccId.setForeground(Color.BLACK);
         SuccId.setText("none");
     }
-
+    
     public void addFingersToPanel(ArrayList<PNode> arrayList) {
         FingPanel.removeAll();
         for (int i = 0; i < arrayList.size(); i++) {
             if ((PNode) arrayList.get(i) != null) {
-                FingPanel.add(new JLabel("Finger " + i + " node ID:"));
-                FingPanel.add(new JLabel(((BigInteger) ((PNode) arrayList.get(i)).getAttribute("chordId")).toString(16)));
+                FingPanel.add(new JLabel("Finger " + Integer.toString(i) + " node ID:"), "align left");
+                FingPanel.add(new JLabel(((BigInteger) ((PNode) arrayList.get(i)).getAttribute("chordId")).toString(16)), "align left");
             }
         }
-        FingPanel.setBackground(Color.YELLOW);
     }
 
-    public void setNullFingers() {
+    public void resetFingers() {
         FingPanel.removeAll();
-        FingPanel.add(new JLabel("No fings yet!"));
-    }
-
-    public void resetFingPanel() {
-        FingPanel.setBackground(originalColor);
-        FingPanel.removeAll();
-        FingPanel.add(FingId);
     }
 
     public void resetInfo() {
         resetNodeId();
         resetPredId();
         resetSuccId();
-        resetFingPanel();
+        resetFingers();
     }
-    
-    public JButton getBackButton(){
+
+    public JButton getBackButton() {
         return backButton;
     }
-    
-    public JButton getFwdButton(){
+
+    public JButton getFwdButton() {
         return fwdButton;
     }
-    
-    public JTextField getTxtField(){
+
+    public JTextField getTxtField() {
         return stepTextField;
     }
 }

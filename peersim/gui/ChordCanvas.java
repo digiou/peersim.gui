@@ -252,7 +252,7 @@ public class ChordCanvas extends PCanvas {
         if (arraylist.get(0) != null) {
             panel.addFingersToPanel(arraylist);
         } else {
-            panel.setNullFingers();
+            panel.resetFingers();
         }
 
     }
