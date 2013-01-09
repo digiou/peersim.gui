@@ -24,22 +24,29 @@ public class InfoPanel extends JPanel {
     private JLabel PredId = new JLabel("none");
     private JLabel SuccId = new JLabel("none");
     private JLabel FingLabel = new JLabel("Finger node IDs:");
+    private JLabel NoneLabel = new JLabel("none");
     private JLabel stepLabel = new JLabel("Steps:");
+    private JLabel gotoLabel = new JLabel("Go to event:");
     private JButton backButton = new JButton("Back 1 event");
     private JButton fwdButton = new JButton("Move 1 event");
+    private JButton gotoButton = new JButton(">>");
     private JTextField stepTextField = new JTextField();
-    private ArrayList<JLabel> componentList = new ArrayList<JLabel>();
-    private JPanel FingPanel = new JPanel(new MigLayout("wrap 1"));
+    private JTextField gotoTextField = new JTextField();
+    private JPanel FingPanel = new JPanel(new GridLayout(0,1));
 
     public InfoPanel() {
         super();
         setLayout(new MigLayout("wrap 1"));
         stepTextField.setText("1");
-
+        gotoTextField.setText("0");
+        
         add(stepLabel, "split 2");
         add(stepTextField, "grow");
         add(backButton, "split 2");
         add(fwdButton);
+        add(gotoLabel, "split 3");
+        add(gotoTextField, "grow");
+        add(gotoButton, "shrink");
         add(NodeLabel);
         add(NodeId);
         add(PredLabel);
@@ -47,7 +54,8 @@ public class InfoPanel extends JPanel {
         add(SuccLabel);
         add(SuccId);
         add(FingLabel);
-        add(FingPanel, "gapleft");
+        add(NoneLabel);
+        add(FingPanel, "gapleft");        
         setVisible(true);
     }
 
@@ -76,6 +84,7 @@ public class InfoPanel extends JPanel {
     }
     
     public void addFingersToPanel(ArrayList<PNode> arrayList) {
+        remove(NoneLabel);
         FingPanel.removeAll();
         for (int i = 0; i < arrayList.size(); i++) {
             if ((PNode) arrayList.get(i) != null) {
@@ -87,6 +96,7 @@ public class InfoPanel extends JPanel {
 
     public void resetFingers() {
         FingPanel.removeAll();
+        add(NoneLabel);
     }
 
     public void resetInfo() {
