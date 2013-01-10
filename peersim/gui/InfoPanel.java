@@ -1,7 +1,6 @@
 package peersim.gui;
 
 import edu.umd.cs.piccolo.PNode;
-import java.awt.Color;
 import java.awt.GridLayout;
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -25,7 +24,7 @@ public class InfoPanel extends JPanel {
     private JLabel SuccId = new JLabel("none");
     private JLabel FingLabel = new JLabel("Finger node IDs:");
     private JLabel NoneLabel = new JLabel("none");
-    private JLabel stepLabel = new JLabel("Steps:");
+    private JLabel stepLabel = new JLabel("Batch Events:");
     private JLabel gotoLabel = new JLabel("Go to event:");
     private JButton backButton = new JButton("Back 1 event");
     private JButton fwdButton = new JButton("Move 1 event");
@@ -105,7 +104,14 @@ public class InfoPanel extends JPanel {
         resetSuccId();
         resetFingers();
     }
+    
+    public JTextField getGotoTxtField(){
+        return gotoTextField;
+    }
 
+    public JButton getGotoButton(){
+        return gotoButton;
+    }
     public JButton getBackButton() {
         return backButton;
     }

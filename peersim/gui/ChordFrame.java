@@ -21,7 +21,7 @@ public class ChordFrame extends JFrame{
         
         InfoPanel infoPanel = new InfoPanel();
         add(infoPanel, BorderLayout.WEST);
-        add(new ChordCanvas(infoPanel, infoPanel.getBackButton(), infoPanel.getFwdButton(), infoPanel.getTxtField()), BorderLayout.CENTER);
+        add(new ChordCanvas(infoPanel), BorderLayout.CENTER);
         pack();
         setVisible(true);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

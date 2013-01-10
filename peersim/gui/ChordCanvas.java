@@ -54,18 +54,20 @@ public class ChordCanvas extends PCanvas {
     private PLayer edgeLayer = new PLayer();
     private InfoPanel panel;
     private HistoryObject currentNetwork;
-    private JButton back, frwrd;
-    private JTextField stepField;
+    private JButton back, frwrd, gotoButton;
+    private JTextField stepField, gotoField;
     private PBasicInputEventHandler colors, tooltip;
     private PText eventTooltipNode, selectedTooltipNode;
 
-    public ChordCanvas(InfoPanel inheritedPanel, JButton back, final JButton frwrd, JTextField stepField) {
+    public ChordCanvas(InfoPanel inheritedPanel) {
         super();
         setSize(SCREEN);
-        this.panel = inheritedPanel;
-        this.back = back;
-        this.frwrd = frwrd;
-        this.stepField = stepField;
+        panel = inheritedPanel;
+        back = inheritedPanel.getBackButton();
+        frwrd = inheritedPanel.getFwdButton();
+        gotoButton = inheritedPanel.getGotoButton();
+        stepField = inheritedPanel.getTxtField();
+        gotoField = inheritedPanel.getGotoTxtField();
 
         this.back.setEnabled(false);
         if (historySize == 0) {
@@ -106,6 +108,13 @@ public class ChordCanvas extends PCanvas {
             @Override
             public void actionPerformed(ActionEvent e) {
                 drawPrevious(step);
+            }
+        });
+        gotoButton.addActionListener(new ActionListener() {
+            
+            @Override
+            public void actionPerformed(ActionEvent e){
+                drawGoto();
             }
         });
 
@@ -298,6 +307,31 @@ public class ChordCanvas extends PCanvas {
         }
         if (current <= historySize - 1) {
             frwrd.setEnabled(true);
+        }
+    }
+    
+    private void drawGoto(){
+        int destination = Integer.parseInt(gotoField.getText());
+        if(destination != current){
+            clearCanvas();
+            if(destination >= historySize){
+                current = historySize;
+                draw(historySize);
+                back.setEnabled(true);
+                frwrd.setEnabled(false);
+                gotoField.setText(Integer.toString(historySize));
+            } else if(destination <= 0){
+                current = 0;
+                draw(0);
+                back.setEnabled(false);
+                frwrd.setEnabled(true);
+                gotoField.setText("0");
+            } else {
+                current = destination;
+                draw(destination);
+                back.setEnabled(true);
+                frwrd.setEnabled(true);
+            }
         }
     }
 
