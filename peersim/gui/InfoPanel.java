@@ -16,13 +16,13 @@ import net.miginfocom.swing.MigLayout;
  */
 public class InfoPanel extends JPanel {
 
-    private JLabel NodeLabel = new JLabel("Currently selected Node ID:");
-    private JLabel PredLabel = new JLabel("Current Predecessor Node ID:");
-    private JLabel SuccLabel = new JLabel("Current Successor Node ID:");
+    private JLabel NodeLabel = new JLabel("<html>Currently <font color='green'>Selected</font> Node ID:</html>");
+    private JLabel PredLabel = new JLabel("<html>Current <font color='red'>Predecessor</font> Node ID:</html>");
+    private JLabel SuccLabel = new JLabel("<html>Current <font color='blue'>Successor</font> Node ID:</html>");
     private JLabel NodeId = new JLabel("none");
     private JLabel PredId = new JLabel("none");
     private JLabel SuccId = new JLabel("none");
-    private JLabel FingLabel = new JLabel("Finger node IDs:");
+    private JLabel FingLabel = new JLabel("Finger Node IDs:");
     private JLabel NoneLabel = new JLabel("none");
     private JLabel stepLabel = new JLabel("Batch Events:");
     private JLabel gotoLabel = new JLabel("Go to event:");
