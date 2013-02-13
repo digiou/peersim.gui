@@ -55,7 +55,7 @@ public class ChordCanvas extends PCanvas {
     private InfoPanel panel;
     private HistoryObject currentNetwork;
     private JButton back, frwrd, gotoButton;
-    private JTextField stepField, gotoField;
+    private JTextField gotoField;
     private PBasicInputEventHandler colors, tooltip;
     private PText eventTooltipNode, selectedTooltipNode;
 
@@ -66,7 +66,6 @@ public class ChordCanvas extends PCanvas {
         back = inheritedPanel.getBackButton();
         frwrd = inheritedPanel.getFwdButton();
         gotoButton = inheritedPanel.getGotoButton();
-        stepField = inheritedPanel.getTxtField();
         gotoField = inheritedPanel.getGotoTxtField();
 
         this.back.setEnabled(false);
@@ -92,9 +91,8 @@ public class ChordCanvas extends PCanvas {
 
         draw(current);
 
-        this.stepField.getDocument().addDocumentListener(new stepDocumentListener());
-        frwrd.setText("Next 1 event");
-        back.setText("Back 1 event");
+        frwrd.setText("Next");
+        back.setText("Back");
 
         frwrd.addActionListener(new ActionListener() {
 
@@ -343,7 +341,7 @@ public class ChordCanvas extends PCanvas {
             setStroke(new PFixedWidthStroke());
             float x = cx + (float) (radius * Math.sin(angle));
             float y = cy - (float) (radius * Math.cos(angle));
-            setPathToEllipse(x, y, 10, 10);
+            setPathToEllipse(x, y, 9, 9);
         }
     }
 
@@ -639,52 +637,6 @@ public class ChordCanvas extends PCanvas {
         @Override
         public void mouseExited(PInputEvent e) {
             selectedTooltipNode.setVisible(false);
-        }
-    }
-
-    private class stepDocumentListener implements DocumentListener {
-
-        String content;
-
-        @Override
-        public void insertUpdate(DocumentEvent de) {
-            try {
-                content = de.getDocument().getText(0, de.getDocument().getLength());
-                step = Integer.parseInt(content);
-                if (step == 1) {
-                    frwrd.setText("Next " + step + " event");
-                    back.setText("Back " + step + " event");
-                } else {
-                    frwrd.setText("Next " + step + " events");
-                    back.setText("Back " + step + " events");
-                }
-            } catch (BadLocationException ex) {
-                Logger.getLogger(ChordCanvas.class.getName()).log(Level.SEVERE, null, ex);
-            }
-
-        }
-
-        @Override
-        public void removeUpdate(DocumentEvent de) {
-            try {
-                content = de.getDocument().getText(0, de.getDocument().getLength());
-                if (content.equals("") || content.equals("1")) {
-                    step = 1;
-                    frwrd.setText("Next 1 event");
-                    back.setText("Back 1 event");
-                } else {
-                    step = Integer.parseInt(content);
-                    frwrd.setText("Next " + step + " events");
-                    back.setText("Back " + step + " events");
-                }
-            } catch (BadLocationException ex) {
-                Logger.getLogger(ChordCanvas.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-
-        @Override
-        public void changedUpdate(DocumentEvent de) {
-            throw new UnsupportedOperationException("Not supported yet.");
         }
     }
 }

@@ -39,13 +39,13 @@ public class InfoPanel extends JPanel {
         stepTextField.setText("1");
         gotoTextField.setText("0");
         
+        add(gotoLabel, "split 3");
+        add(gotoTextField, "grow");
+        add(gotoButton, "shrink");
         add(stepLabel, "split 2");
         add(stepTextField, "grow");
         add(backButton, "split 2");
         add(fwdButton);
-        add(gotoLabel, "split 3");
-        add(gotoTextField, "grow");
-        add(gotoButton, "shrink");
         add(NodeLabel);
         add(NodeId);
         add(PredLabel);
@@ -118,9 +118,5 @@ public class InfoPanel extends JPanel {
 
     public JButton getFwdButton() {
         return fwdButton;
-    }
-
-    public JTextField getTxtField() {
-        return stepTextField;
     }
 }
