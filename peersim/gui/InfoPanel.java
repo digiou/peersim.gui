@@ -26,10 +26,10 @@ public class InfoPanel extends JPanel {
     private JLabel NoneLabel = new JLabel("none");
     private JLabel stepLabel = new JLabel("Batch Events:");
     private JLabel gotoLabel = new JLabel("Go to event:");
-    private JButton backButton = new JButton("Back 1 event");
-    private JButton fwdButton = new JButton("Move 1 event");
+    private JButton backButton = new JButton("<");
+    private JButton fwdButton = new JButton(">");
     private JButton gotoButton = new JButton(">>");
-    private JTextField stepTextField = new JTextField();
+    private JTextField stepTextField = new JTextField(5);
     private JTextField gotoTextField = new JTextField();
     private JPanel FingPanel = new JPanel(new GridLayout(0,1));
 
@@ -37,15 +37,16 @@ public class InfoPanel extends JPanel {
         super();
         setLayout(new MigLayout("wrap 1"));
         stepTextField.setText("1");
+        stepTextField.setHorizontalAlignment(JTextField.RIGHT);
         gotoTextField.setText("0");
+        gotoTextField.setHorizontalAlignment(JTextField.RIGHT);
         
-        add(gotoLabel, "split 3");
+        add(gotoLabel, "split 2");
         add(gotoTextField, "grow");
-        add(gotoButton, "shrink");
-        add(stepLabel, "split 2");
+        add(stepLabel, "split 4");
+        add(backButton, "shrink");
         add(stepTextField, "grow");
-        add(backButton, "split 2");
-        add(fwdButton);
+        add(fwdButton, "shrink");
         add(NodeLabel);
         add(NodeId);
         add(PredLabel);
@@ -105,13 +106,18 @@ public class InfoPanel extends JPanel {
         resetFingers();
     }
     
-    public JTextField getGotoTxtField(){
+    public JTextField getStepTxtField() {
+        return stepTextField;
+    }
+    
+    public JTextField getGotoTxtField() {
         return gotoTextField;
     }
 
-    public JButton getGotoButton(){
+    /*public JButton getGotoButton(){
         return gotoButton;
-    }
+    }*/
+    
     public JButton getBackButton() {
         return backButton;
     }

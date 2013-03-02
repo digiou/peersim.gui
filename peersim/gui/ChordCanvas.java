@@ -31,6 +31,7 @@ import javax.swing.KeyStroke;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
 
 /**
  *
@@ -55,7 +56,7 @@ public class ChordCanvas extends PCanvas {
     private InfoPanel panel;
     private HistoryObject currentNetwork;
     private JButton back, frwrd, gotoButton;
-    private JTextField gotoField;
+    private JTextField gotoField, stepField;
     private PBasicInputEventHandler colors, tooltip;
     private PText eventTooltipNode, selectedTooltipNode;
 
@@ -65,7 +66,7 @@ public class ChordCanvas extends PCanvas {
         panel = inheritedPanel;
         back = inheritedPanel.getBackButton();
         frwrd = inheritedPanel.getFwdButton();
-        gotoButton = inheritedPanel.getGotoButton();
+        stepField = inheritedPanel.getStepTxtField();
         gotoField = inheritedPanel.getGotoTxtField();
 
         this.back.setEnabled(false);
@@ -90,10 +91,9 @@ public class ChordCanvas extends PCanvas {
         selectedTooltipNode.setVisible(false);
 
         draw(current);
-
-        frwrd.setText("Next");
-        back.setText("Back");
-
+        
+        stepField.getDocument().addDocumentListener(new StepUpdater());
+        gotoField.getDocument().addDocumentListener(new GotoUpdater());
         frwrd.addActionListener(new ActionListener() {
 
             @Override
@@ -106,13 +106,6 @@ public class ChordCanvas extends PCanvas {
             @Override
             public void actionPerformed(ActionEvent e) {
                 drawPrevious(step);
-            }
-        });
-        gotoButton.addActionListener(new ActionListener() {
-            
-            @Override
-            public void actionPerformed(ActionEvent e){
-                drawGoto();
             }
         });
 
@@ -308,8 +301,7 @@ public class ChordCanvas extends PCanvas {
         }
     }
     
-    private void drawGoto(){
-        int destination = Integer.parseInt(gotoField.getText());
+    private void drawGoto(int destination){
         if(destination != current){
             clearCanvas();
             if(destination >= historySize){
@@ -317,13 +309,11 @@ public class ChordCanvas extends PCanvas {
                 draw(historySize);
                 back.setEnabled(true);
                 frwrd.setEnabled(false);
-                gotoField.setText(Integer.toString(historySize));
             } else if(destination <= 0){
                 current = 0;
                 draw(0);
                 back.setEnabled(false);
                 frwrd.setEnabled(true);
-                gotoField.setText("0");
             } else {
                 current = destination;
                 draw(destination);
@@ -638,5 +628,60 @@ public class ChordCanvas extends PCanvas {
         public void mouseExited(PInputEvent e) {
             selectedTooltipNode.setVisible(false);
         }
+    }
+    
+    private class StepUpdater implements DocumentListener {
+                
+        @Override
+        public void insertUpdate(DocumentEvent de) {
+            stepUpdate(de);
+        }
+
+        @Override
+        public void removeUpdate(DocumentEvent de) {
+            stepUpdate(de);
+        }
+
+        @Override
+        public void changedUpdate(DocumentEvent de) {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+        
+        private void stepUpdate(DocumentEvent de) {
+            try{
+                step = Integer.parseInt(stepField.getText());
+            } catch (NumberFormatException nme) {
+                step = 0;
+            }
+        }
+    }
+    
+    private class GotoUpdater implements DocumentListener {
+
+        @Override
+        public void insertUpdate(DocumentEvent de) {
+            gotoUpdate(de);
+        }
+
+        @Override
+        public void removeUpdate(DocumentEvent de) {
+            gotoUpdate(de);
+        }
+
+        @Override
+        public void changedUpdate(DocumentEvent de) {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+        
+        private void gotoUpdate(DocumentEvent de) {
+            int destination = 0;
+            try {
+                destination = Integer.parseInt(gotoField.getText());
+            } catch (NumberFormatException nme) {
+                destination = 0;
+            }
+            drawGoto(destination);
+        }
+        
     }
 }
