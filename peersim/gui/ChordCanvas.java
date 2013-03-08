@@ -20,8 +20,7 @@ import java.awt.geom.Point2D;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.TreeMap;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JButton;
@@ -30,8 +29,6 @@ import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.Document;
 
 /**
  *
@@ -51,14 +48,19 @@ public class ChordCanvas extends PCanvas {
     private PCamera camera;
     private Point2D epicenter = new Point2D.Double(cx, cy);
     private HashMap<Long, PNode> hashmap;
+    private TreeMap<BigInteger, Long> chordIDTreeMap;
     private PLayer nodeLayer = this.getLayer();
     private PLayer edgeLayer = new PLayer();
     private InfoPanel panel;
     private HistoryObject currentNetwork;
-    private JButton back, frwrd, gotoButton;
+    private JButton back, frwrd, nextNodeButton, previousNodeButton;
     private JTextField gotoField, stepField;
     private PBasicInputEventHandler colors, tooltip;
     private PText eventTooltipNode, selectedTooltipNode;
+    private ArrayList lines = new ArrayList();
+    private PInputEventFilter mouseFilter = new PInputEventFilter();
+    private Boolean selected = true;
+    private PNode selectedNode;
 
     public ChordCanvas(InfoPanel inheritedPanel) {
         super();
@@ -66,6 +68,8 @@ public class ChordCanvas extends PCanvas {
         panel = inheritedPanel;
         back = inheritedPanel.getBackButton();
         frwrd = inheritedPanel.getFwdButton();
+        nextNodeButton = inheritedPanel.getNextNodeButton();
+        previousNodeButton = inheritedPanel.getPreviousNodeButton();
         stepField = inheritedPanel.getStepTxtField();
         gotoField = inheritedPanel.getGotoTxtField();
 
@@ -91,18 +95,16 @@ public class ChordCanvas extends PCanvas {
         selectedTooltipNode.setVisible(false);
 
         draw(current);
-        
+
         stepField.getDocument().addDocumentListener(new StepUpdater());
         gotoField.getDocument().addDocumentListener(new GotoUpdater());
         frwrd.addActionListener(new ActionListener() {
-
             @Override
             public void actionPerformed(ActionEvent e) {
                 drawNext(step);
             }
         });
         back.addActionListener(new ActionListener() {
-
             @Override
             public void actionPerformed(ActionEvent e) {
                 drawPrevious(step);
@@ -110,24 +112,54 @@ public class ChordCanvas extends PCanvas {
         });
 
         Action drawNext = new AbstractAction() {
-
             @Override
             public void actionPerformed(ActionEvent e) {
                 drawNext(step);
             }
         };
-        frwrd.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("RIGHT"), "drawNext");
+        frwrd.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("UP"), "drawNext");
         frwrd.getActionMap().put("drawNext", drawNext);
 
         Action drawPrevious = new AbstractAction() {
-
             @Override
             public void actionPerformed(ActionEvent e) {
                 drawPrevious(step);
             }
         };
-        back.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("LEFT"), "drawPrevious");
+        back.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("DOWN"), "drawPrevious");
         back.getActionMap().put("drawPrevious", drawPrevious);
+
+
+        nextNodeButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                selectNext();
+            }
+        });
+        previousNodeButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                selectPrevious();
+            }
+        });
+
+        Action selectNext = new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                selectNext();
+            }
+        };
+        nextNodeButton.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("RIGHT"), "selectNext");
+        nextNodeButton.getActionMap().put("selectNext", selectNext);
+
+        Action selectPrevious = new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent ae) {
+                selectPrevious();
+            }
+        };
+        previousNodeButton.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("LEFT"), "selectPrevious");
+        previousNodeButton.getActionMap().put("selectPrevious", selectPrevious);
 
         this.setVisible(true);
     }
@@ -139,11 +171,12 @@ public class ChordCanvas extends PCanvas {
     private void draw(int pointer) {
         currentNetwork = NetworkHistory.getEntry(pointer);
         eventTooltipNode.setText("Current event: " + currentNetwork.getReason() + " @time: " + currentNetwork.getTime());
-        hashmap = new HashMap<Long, PNode>(currentNetwork.size());
+        hashmap = new HashMap<>();
+        chordIDTreeMap = new TreeMap<>();
         drawNodes(nodeLayer);
-        colors = new ChordMouseEventHandler();
+        //colors = new ChordMouseEventHandler(mouseFilter, lines, selected, selectedNode);
         tooltip = new TooltipHandler();
-        nodeLayer.addInputEventListener(colors);
+        //nodeLayer.addInputEventListener(colors);
         nodeLayer.addInputEventListener(tooltip);
     }
 
@@ -155,6 +188,12 @@ public class ChordCanvas extends PCanvas {
             nodeLayer.addChild(node);
             storeInfo(node, hcp, currentNetwork.getNode(i).getID());
             hashmap.put(currentNetwork.getNode(i).getID(), node);
+            chordIDTreeMap.put(hcp.chordId, currentNetwork.getNode(i).getID());
+        }
+        if (pinnedNodeSimID != -1) {
+            if ((PNode) getRelationships().get(pinnedNodeSimID) != null) {
+                colorizeNext((PNode) getRelationships().get(pinnedNodeSimID));
+            }
         }
     }
 
@@ -264,7 +303,7 @@ public class ChordCanvas extends PCanvas {
     private void clearCanvas() {
         edgeLayer.removeAllChildren();
         nodeLayer.removeAllChildren();
-        nodeLayer.removeInputEventListener(colors);
+        //nodeLayer.removeInputEventListener(colors);
         nodeLayer.removeInputEventListener(tooltip);
         removeInfoFromPanel();
     }
@@ -300,16 +339,16 @@ public class ChordCanvas extends PCanvas {
             frwrd.setEnabled(true);
         }
     }
-    
-    private void drawGoto(int destination){
-        if(destination != current){
+
+    private void drawGoto(int destination) {
+        if (destination != current) {
             clearCanvas();
-            if(destination >= historySize){
+            if (destination >= historySize) {
                 current = historySize;
                 draw(historySize);
                 back.setEnabled(true);
                 frwrd.setEnabled(false);
-            } else if(destination <= 0){
+            } else if (destination <= 0) {
                 current = 0;
                 draw(0);
                 back.setEnabled(false);
@@ -321,6 +360,142 @@ public class ChordCanvas extends PCanvas {
                 frwrd.setEnabled(true);
             }
         }
+    }
+
+    private void selectNext() {
+        BigInteger firstChordID = chordIDTreeMap.firstKey();
+        Long firstSimID = chordIDTreeMap.get(firstChordID);
+        PNode firstNode = (PNode) getRelationships().get(firstSimID);
+        if (pinnedNodeSimID == -1) {
+            colorizeNext(firstNode);
+            pinnedNodeSimID = firstSimID;
+            selectedNode = firstNode;
+        } else {
+            PNode pinnedNode = (PNode) getRelationships().get(pinnedNodeSimID);
+            decolorizeOld(pinnedNode);
+            BigInteger pinnedChordID = ((BigInteger) ((PNode) getRelationships().get(pinnedNodeSimID)).getAttribute("chordId"));
+            BigInteger newChordID = chordIDTreeMap.higherKey(pinnedChordID);
+            PNode nextNode;
+            if (newChordID == null) {
+                nextNode = firstNode;
+                pinnedNodeSimID = firstSimID;
+            } else {
+                nextNode = (PNode) getRelationships().get(chordIDTreeMap.get(newChordID));
+                pinnedNodeSimID = chordIDTreeMap.get(newChordID);
+            }
+            colorizeNext(nextNode);
+            selectedNode = nextNode;
+            selected = true;
+        }
+    }
+
+    private void selectPrevious() {
+        BigInteger lastChordID = chordIDTreeMap.lastKey();
+        Long lastSimID = chordIDTreeMap.get(lastChordID);
+        PNode lastNode = (PNode) getRelationships().get(lastSimID);
+        if (pinnedNodeSimID == -1) {
+            colorizeNext(lastNode);
+            pinnedNodeSimID = lastSimID;
+            selectedNode = lastNode;
+        } else {
+            PNode pinnedNode = (PNode) getRelationships().get(pinnedNodeSimID);
+            decolorizeOld(pinnedNode);
+            BigInteger pinnedChordID = ((BigInteger) ((PNode) getRelationships().get(pinnedNodeSimID)).getAttribute("chordId"));
+            BigInteger newChordID = chordIDTreeMap.lowerKey(pinnedChordID);
+            PNode nextNode;
+            if (newChordID == null) {
+                nextNode = lastNode;
+                pinnedNodeSimID = lastSimID;
+            } else {
+                nextNode = (PNode) getRelationships().get(chordIDTreeMap.get(newChordID));
+                pinnedNodeSimID = chordIDTreeMap.get(newChordID);
+            }
+            colorizeNext(nextNode);
+            selectedNode = nextNode;
+            selected = true;
+        }
+    }
+
+    private void colorizeNext(PNode nextNode) {
+        PNode succNode, predNode;
+        lines = new ArrayList();
+        if (!nextNode.getAttribute("successor").equals("null")) {
+            succNode = (PNode) getRelationships().get((Long) nextNode.getAttribute("successor"));
+            succNode.setPaint(Color.BLUE);
+            succNode.moveToFront();
+            lines.add(drawLine(nextNode, succNode));
+        } else {
+            succNode = null;
+        }
+
+        if (!nextNode.getAttribute("predecessor").equals("null")) {
+            predNode = (PNode) getRelationships().get((Long) nextNode.getAttribute("predecessor"));
+            predNode.setPaint(Color.RED);
+            predNode.moveToFront();
+            lines.add(drawLine(nextNode, predNode));
+        } else {
+            predNode = null;
+        }
+
+        ArrayList fingerIDs = (ArrayList) nextNode.getAttribute("fingers");
+        ArrayList fingerNodes = new ArrayList<>();
+        for (int i = 0; i < fingerIDs.size(); i++) {
+            if (!getRelationships().get((Long) fingerIDs.get(i)).equals("null")) {
+                PNode finger = getRelationships().get((Long) fingerIDs.get(i));
+                fingerNodes.add(finger);
+                finger.setPaint(Color.YELLOW);
+                finger.moveToFront();
+                lines.add(drawCurvedLine(nextNode, finger, fingerIDs.size() + 1, i + 1));
+            }
+        }
+
+        nextNode.setPaint(Color.GREEN);
+        nextNode.moveToFront();
+
+        edgeLayer.addChildren(lines);
+
+        mouseFilter.setAcceptsMouseExited(false);
+        mouseFilter.setAcceptsMouseEntered(false);
+
+        giveInfoToPanel(nextNode, succNode, predNode, fingerNodes);
+    }
+
+    private void decolorizeOld(PNode oldNode) {
+        if (!oldNode.getAttribute("successor").equals("null")) {
+            PNode succNode = (PNode) getRelationships().get((Long) oldNode.getAttribute("successor"));
+            succNode.setPaint(Color.WHITE);
+            succNode.moveToBack();
+        }
+
+        if (!oldNode.getAttribute("predecessor").equals("null")) {
+            PNode predNode = (PNode) getRelationships().get((Long) oldNode.getAttribute("predecessor"));
+            predNode.setPaint(Color.WHITE);
+            predNode.moveToBack();
+        }
+
+        ArrayList fingerIDs = (ArrayList) oldNode.getAttribute("fingers");
+        for (int i = 0; i < fingerIDs.size(); i++) {
+            if (!getRelationships().get((Long) fingerIDs.get(i)).equals("null")) {
+                PNode finger = getRelationships().get((Long) fingerIDs.get(i));
+                finger.setPaint(Color.WHITE);
+                finger.moveToBack();
+            }
+        }
+
+        oldNode.setPaint(Color.WHITE);
+        oldNode.moveToBack();
+
+        edgeLayer.removeChildren(lines);
+
+        int size = lines.size();
+        for (int i = 0; i < size; i++) {
+            lines.remove(0);
+        }
+
+        mouseFilter.setAcceptsMouseExited(true);
+        mouseFilter.setAcceptsMouseEntered(true);
+
+        removeInfoFromPanel();
     }
 
     private class Circle extends PPath {
@@ -338,14 +513,17 @@ public class ChordCanvas extends PCanvas {
     public class ChordMouseEventHandler extends PBasicInputEventHandler {
 
         PInputEventFilter filter;
-        ArrayList lines = new ArrayList();
-        Boolean selectedSomething = true;
+        ArrayList lines;
+        Boolean selectedSomething;
         PNode something;
         PNode pred, succ;
         ArrayList fingerNodes;
 
-        public ChordMouseEventHandler() {
-            filter = new PInputEventFilter();
+        public ChordMouseEventHandler(PInputEventFilter mouseFilter, ArrayList fingerLines, Boolean selected, PNode selectedNode) {
+            filter = mouseFilter;
+            lines = fingerLines;
+            selectedSomething = selected;
+            something = selectedNode;
             filter.setOrMask(InputEvent.BUTTON1_MASK);
             if (pinnedNodeSimID != -1) {
                 if (getRelationships().get(pinnedNodeSimID) != null) {
@@ -629,9 +807,9 @@ public class ChordCanvas extends PCanvas {
             selectedTooltipNode.setVisible(false);
         }
     }
-    
+
     private class StepUpdater implements DocumentListener {
-                
+
         @Override
         public void insertUpdate(DocumentEvent de) {
             stepUpdate(de);
@@ -646,16 +824,16 @@ public class ChordCanvas extends PCanvas {
         public void changedUpdate(DocumentEvent de) {
             throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         }
-        
+
         private void stepUpdate(DocumentEvent de) {
-            try{
+            try {
                 step = Integer.parseInt(stepField.getText());
             } catch (NumberFormatException nme) {
                 step = 0;
             }
         }
     }
-    
+
     private class GotoUpdater implements DocumentListener {
 
         @Override
@@ -672,9 +850,9 @@ public class ChordCanvas extends PCanvas {
         public void changedUpdate(DocumentEvent de) {
             throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         }
-        
+
         private void gotoUpdate(DocumentEvent de) {
-            int destination = 0;
+            int destination;
             try {
                 destination = Integer.parseInt(gotoField.getText());
             } catch (NumberFormatException nme) {
@@ -682,6 +860,5 @@ public class ChordCanvas extends PCanvas {
             }
             drawGoto(destination);
         }
-        
     }
 }

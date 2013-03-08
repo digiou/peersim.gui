@@ -24,11 +24,13 @@ public class InfoPanel extends JPanel {
     private JLabel SuccId = new JLabel("none");
     private JLabel FingLabel = new JLabel("Finger Node IDs:");
     private JLabel NoneLabel = new JLabel("none");
-    private JLabel stepLabel = new JLabel("Batch Events:");
-    private JLabel gotoLabel = new JLabel("Go to event:");
+    private JLabel stepLabel = new JLabel("Event step:");
+    private JLabel gotoLabel = new JLabel("Goto event:");
+    private JLabel selectNodeLabel = new JLabel("Move node:");
     private JButton backButton = new JButton("<");
     private JButton fwdButton = new JButton(">");
-    private JButton gotoButton = new JButton(">>");
+    private JButton nextNodeButton = new JButton("Next");
+    private JButton previousNodeButton = new JButton("Previous");
     private JTextField stepTextField = new JTextField(5);
     private JTextField gotoTextField = new JTextField();
     private JPanel FingPanel = new JPanel(new GridLayout(0,1));
@@ -47,6 +49,9 @@ public class InfoPanel extends JPanel {
         add(backButton, "shrink");
         add(stepTextField, "grow");
         add(fwdButton, "shrink");
+        add(selectNodeLabel, "split 3");
+        add(previousNodeButton, "shrink");
+        add(nextNodeButton, "shrink");
         add(NodeLabel);
         add(NodeId);
         add(PredLabel);
@@ -114,9 +119,6 @@ public class InfoPanel extends JPanel {
         return gotoTextField;
     }
 
-    /*public JButton getGotoButton(){
-        return gotoButton;
-    }*/
     
     public JButton getBackButton() {
         return backButton;
@@ -124,5 +126,13 @@ public class InfoPanel extends JPanel {
 
     public JButton getFwdButton() {
         return fwdButton;
+    }
+    
+    public JButton getNextNodeButton() {
+        return nextNodeButton;
+    }
+    
+    public JButton getPreviousNodeButton() {
+        return previousNodeButton;
     }
 }
