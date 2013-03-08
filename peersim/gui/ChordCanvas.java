@@ -55,12 +55,13 @@ public class ChordCanvas extends PCanvas {
     private HistoryObject currentNetwork;
     private JButton back, frwrd, nextNodeButton, previousNodeButton;
     private JTextField gotoField, stepField;
-    private PBasicInputEventHandler colors, tooltip;
+    private PBasicInputEventHandler mouseColors, tooltip;
     private PText eventTooltipNode, selectedTooltipNode;
     private ArrayList lines = new ArrayList();
     private PInputEventFilter mouseFilter = new PInputEventFilter();
     private Boolean selected = true;
-    private PNode selectedNode;
+    private Boolean highlighting = false;
+    private PNode selectedNode, highlightedNode;
 
     public ChordCanvas(InfoPanel inheritedPanel) {
         super();
@@ -173,11 +174,11 @@ public class ChordCanvas extends PCanvas {
         eventTooltipNode.setText("Current event: " + currentNetwork.getReason() + " @time: " + currentNetwork.getTime());
         hashmap = new HashMap<>();
         chordIDTreeMap = new TreeMap<>();
-        drawNodes(nodeLayer);
-        //colors = new ChordMouseEventHandler(mouseFilter, lines, selected, selectedNode);
+        mouseColors = new MouseEventHandler(mouseFilter);
         tooltip = new TooltipHandler();
-        //nodeLayer.addInputEventListener(colors);
+        nodeLayer.addInputEventListener(mouseColors);
         nodeLayer.addInputEventListener(tooltip);
+        drawNodes(nodeLayer);
     }
 
     private void drawNodes(PLayer nodeLayer) {
@@ -192,7 +193,7 @@ public class ChordCanvas extends PCanvas {
         }
         if (pinnedNodeSimID != -1) {
             if ((PNode) getRelationships().get(pinnedNodeSimID) != null) {
-                colorizeNext((PNode) getRelationships().get(pinnedNodeSimID));
+                colorizeKeyboard((PNode) getRelationships().get(pinnedNodeSimID));
             }
         }
     }
@@ -303,7 +304,7 @@ public class ChordCanvas extends PCanvas {
     private void clearCanvas() {
         edgeLayer.removeAllChildren();
         nodeLayer.removeAllChildren();
-        //nodeLayer.removeInputEventListener(colors);
+        nodeLayer.removeInputEventListener(mouseColors);
         nodeLayer.removeInputEventListener(tooltip);
         removeInfoFromPanel();
     }
@@ -367,12 +368,29 @@ public class ChordCanvas extends PCanvas {
         Long firstSimID = chordIDTreeMap.get(firstChordID);
         PNode firstNode = (PNode) getRelationships().get(firstSimID);
         if (pinnedNodeSimID == -1) {
-            colorizeNext(firstNode);
-            pinnedNodeSimID = firstSimID;
-            selectedNode = firstNode;
+            if (highlightedNode == null) {
+                colorizeKeyboard(firstNode);
+                pinnedNodeSimID = firstSimID;
+                selectedNode = firstNode;
+            } else {
+                BigInteger highlightedChordID = (BigInteger)highlightedNode.getAttribute("chordId");
+                BigInteger highlightNodeNextID = chordIDTreeMap.higherKey(highlightedChordID);
+                decolorizeOld(highlightedNode);
+                if (highlightNodeNextID != null) {
+                    PNode nextNode = (PNode) getRelationships().get(chordIDTreeMap.get(highlightNodeNextID));
+                    colorizeKeyboard(nextNode);
+                    pinnedNodeSimID = chordIDTreeMap.get(highlightNodeNextID);
+                    selectedNode = nextNode;
+                } else {
+                    colorizeKeyboard(firstNode);
+                    pinnedNodeSimID = firstSimID;
+                    selectedNode = firstNode;
+                }
+                highlightedNode = null;
+            }
         } else {
             PNode pinnedNode = (PNode) getRelationships().get(pinnedNodeSimID);
-            decolorizeOld(pinnedNode);
+            decolorizeKeyboard(pinnedNode);
             BigInteger pinnedChordID = ((BigInteger) ((PNode) getRelationships().get(pinnedNodeSimID)).getAttribute("chordId"));
             BigInteger newChordID = chordIDTreeMap.higherKey(pinnedChordID);
             PNode nextNode;
@@ -383,7 +401,7 @@ public class ChordCanvas extends PCanvas {
                 nextNode = (PNode) getRelationships().get(chordIDTreeMap.get(newChordID));
                 pinnedNodeSimID = chordIDTreeMap.get(newChordID);
             }
-            colorizeNext(nextNode);
+            colorizeKeyboard(nextNode);
             selectedNode = nextNode;
             selected = true;
         }
@@ -394,12 +412,29 @@ public class ChordCanvas extends PCanvas {
         Long lastSimID = chordIDTreeMap.get(lastChordID);
         PNode lastNode = (PNode) getRelationships().get(lastSimID);
         if (pinnedNodeSimID == -1) {
-            colorizeNext(lastNode);
-            pinnedNodeSimID = lastSimID;
-            selectedNode = lastNode;
+            if (highlightedNode == null) {
+                colorizeKeyboard(lastNode);
+                pinnedNodeSimID = lastSimID;
+                selectedNode = lastNode;
+            } else {
+                BigInteger highlightedChordID = (BigInteger)highlightedNode.getAttribute("chordId");
+                BigInteger highlightNodeNextID = chordIDTreeMap.higherKey(highlightedChordID);
+                decolorizeOld(highlightedNode);
+                if (highlightNodeNextID != null) {
+                    PNode nextNode = (PNode) getRelationships().get(chordIDTreeMap.get(highlightNodeNextID));
+                    colorizeKeyboard(nextNode);
+                    pinnedNodeSimID = chordIDTreeMap.get(highlightNodeNextID);
+                    selectedNode = nextNode;
+                } else {
+                    colorizeKeyboard(lastNode);
+                    pinnedNodeSimID = lastSimID;
+                    selectedNode = lastNode;
+                }
+                highlightedNode = null;
+            }
         } else {
             PNode pinnedNode = (PNode) getRelationships().get(pinnedNodeSimID);
-            decolorizeOld(pinnedNode);
+            decolorizeKeyboard(pinnedNode);
             BigInteger pinnedChordID = ((BigInteger) ((PNode) getRelationships().get(pinnedNodeSimID)).getAttribute("chordId"));
             BigInteger newChordID = chordIDTreeMap.lowerKey(pinnedChordID);
             PNode nextNode;
@@ -410,7 +445,7 @@ public class ChordCanvas extends PCanvas {
                 nextNode = (PNode) getRelationships().get(chordIDTreeMap.get(newChordID));
                 pinnedNodeSimID = chordIDTreeMap.get(newChordID);
             }
-            colorizeNext(nextNode);
+            colorizeKeyboard(nextNode);
             selectedNode = nextNode;
             selected = true;
         }
@@ -454,9 +489,6 @@ public class ChordCanvas extends PCanvas {
 
         edgeLayer.addChildren(lines);
 
-        mouseFilter.setAcceptsMouseExited(false);
-        mouseFilter.setAcceptsMouseEntered(false);
-
         giveInfoToPanel(nextNode, succNode, predNode, fingerNodes);
     }
 
@@ -492,10 +524,19 @@ public class ChordCanvas extends PCanvas {
             lines.remove(0);
         }
 
+        removeInfoFromPanel();
+    }
+
+    private void colorizeKeyboard(PNode aNode) {
+        colorizeNext(aNode);
+        mouseFilter.setAcceptsMouseExited(false);
+        mouseFilter.setAcceptsMouseEntered(false);
+    }
+
+    private void decolorizeKeyboard(PNode aNode) {
+        decolorizeOld(aNode);
         mouseFilter.setAcceptsMouseExited(true);
         mouseFilter.setAcceptsMouseEntered(true);
-
-        removeInfoFromPanel();
     }
 
     private class Circle extends PPath {
@@ -510,286 +551,310 @@ public class ChordCanvas extends PCanvas {
         }
     }
 
-    public class ChordMouseEventHandler extends PBasicInputEventHandler {
+    public class MouseEventHandler extends PBasicInputEventHandler {
 
-        PInputEventFilter filter;
-        ArrayList lines;
-        Boolean selectedSomething;
-        PNode something;
-        PNode pred, succ;
-        ArrayList fingerNodes;
+        PInputEventFilter eventFilter;
 
-        public ChordMouseEventHandler(PInputEventFilter mouseFilter, ArrayList fingerLines, Boolean selected, PNode selectedNode) {
-            filter = mouseFilter;
-            lines = fingerLines;
-            selectedSomething = selected;
-            something = selectedNode;
-            filter.setOrMask(InputEvent.BUTTON1_MASK);
-            if (pinnedNodeSimID != -1) {
-                if (getRelationships().get(pinnedNodeSimID) != null) {
-                    selectedSomething = false;
-                    filter.setAcceptsMouseEntered(false);
-                    filter.setAcceptsMouseExited(false);
-                    something = (PNode) getRelationships().get(pinnedNodeSimID);
-                    if (!something.getAttribute("predecessor").equals("null")) {
-                        pred = (PNode) getRelationships().get((Long) something.getAttribute("predecessor"));
-                        if (pred != null) {
-                            lines.add(drawLine(something, pred));
-                            pred.setPaint(Color.RED);
-                            pred.moveToFront();
-                        }
-                    } else {
-                        pred = null;
-                    }
-
-                    if (!something.getAttribute("successor").equals("null")) {
-                        succ = (PNode) getRelationships().get((Long) something.getAttribute("successor"));
-                        if (succ != null) {
-                            lines.add(drawLine(something, succ));
-                            succ.setPaint(Color.BLUE);
-                            succ.moveToFront();
-                        }
-                    } else {
-                        succ = null;
-                    }
-
-                    ArrayList fingerID = (ArrayList) something.getAttribute("fingers");
-                    fingerNodes = new ArrayList();
-                    for (int i = 0; i < fingerID.size(); i++) {
-                        if (getRelationships().get((Long) fingerID.get(i)) != null) {
-                            fingerNodes.add(getRelationships().get((Long) fingerID.get(i)));
-                        }
-                    }
-                    int size = fingerNodes.size();
-                    for (int i = 0; i < size; i++) {
-                        ((PNode) fingerNodes.get(i)).setPaint(Color.YELLOW);
-                        ((PNode) fingerNodes.get(i)).moveToFront();
-                        lines.add(drawCurvedLine(something, (PNode) fingerNodes.get(i), size + 1, i + 1));
-                    }
-
-                    something.setPaint(Color.GREEN);
-
-                    something.moveToFront();
-                    edgeLayer.addChildren(lines);
-                    giveInfoToPanel(something, succ, pred, fingerNodes);
-                } else {
-                    pinnedNodeSimID = -1;
-                }
-            }
-            setEventFilter(filter);
+        public MouseEventHandler(PInputEventFilter mouseFilter) {
+            eventFilter = mouseFilter;
+            eventFilter.setOrMask(InputEvent.BUTTON1_MASK);
+            setEventFilter(eventFilter);
         }
 
         @Override
         public void mouseEntered(PInputEvent e) {
-            super.mouseEntered(e);
             if (e.getButton() == MouseEvent.NOBUTTON) {
-                //special pred treatment
-                if (!e.getPickedNode().getAttribute("predecessor").equals("null")) {
-                    pred = (PNode) getRelationships().get((Long) e.getPickedNode().getAttribute("predecessor"));
-                    //necessary
-                    if (pred != null) {
-                        lines.add(drawLine(e.getPickedNode(), pred));
-                        pred.setPaint(Color.RED);
-                        pred.moveToFront();
-                    }
-                } else {
-                    pred = null;
-                }
-
-                if (!e.getPickedNode().getAttribute("successor").equals("null")) {
-                    succ = (PNode) getRelationships().get((Long) e.getPickedNode().getAttribute("successor"));
-                    if (succ != null) {
-                        lines.add(drawLine(e.getPickedNode(), succ));
-                        succ.setPaint(Color.BLUE);
-                        succ.moveToFront();
-                    }
-                } else {
-                    succ = null;
-                }
-
-
-                ArrayList fingerID = (ArrayList) e.getPickedNode().getAttribute("fingers");
-                fingerNodes = new ArrayList();
-                for (int i = 0; i < fingerID.size(); i++) {
-                    if (getRelationships().get((Long) fingerID.get(i)) != null) {
-                        fingerNodes.add(getRelationships().get((Long) fingerID.get(i)));
-                    }
-                }
-                int size = fingerNodes.size();
-                for (int i = 0; i < size; i++) {
-                    ((PNode) fingerNodes.get(i)).setPaint(Color.YELLOW);
-                    ((PNode) fingerNodes.get(i)).moveToFront();
-                    lines.add(drawCurvedLine(e.getPickedNode(), (PNode) fingerNodes.get(i), size + 1, i + 1));
-                }
-
-                e.getPickedNode().setPaint(Color.GREEN);
-                e.getPickedNode().moveToFront();
-                edgeLayer.addChildren(lines);
-            }
-        }
-
-        @Override
-        public void mouseClicked(PInputEvent e) {
-            super.mouseClicked(e);
-            if (e.getButton() == MouseEvent.BUTTON1) {
-                if (selectedSomething) {
-                    something = e.getPickedNode();
-                    pinnedNodeSimID = (Long) e.getPickedNode().getAttribute("simID");
-                    filter.setAcceptsMouseExited(false);
-                    filter.setAcceptsMouseEntered(false);
-                    selectedSomething = false;
-                    giveInfoToPanel(e.getPickedNode(), succ, pred, fingerNodes);
-                } else {
-                    if (something.equals(e.getPickedNode()) || pinnedNodeSimID == (Long) e.getPickedNode().getAttribute("simID")) {
-                        pinnedNodeSimID = -1;
-                        filter.setAcceptsMouseExited(true);
-                        filter.setAcceptsMouseEntered(true);
-                        selectedSomething = true;
-
-                        e.getPickedNode().setPaint(Color.WHITE);
-                        if (pred != null) {
-                            pred.setPaint(Color.WHITE);
-                            pred.moveToBack();
-                        }
-
-                        if (succ != null) {
-                            succ.setPaint(Color.WHITE);
-                            succ.moveToBack();
-                        }
-
-                        e.getPickedNode().moveToBack();
-
-                        edgeLayer.removeChildren(lines);
-
-                        int fingersSize = fingerNodes.size();
-                        for (int i = 0; i < fingersSize; i++) {
-                            if ((PNode) fingerNodes.get(i) != null) {
-                                ((PNode) fingerNodes.get(i)).setPaint(Color.WHITE);
-                                ((PNode) fingerNodes.get(i)).moveToBack();
-                            }
-                        }
-
-                        int linesSize = lines.size();
-                        for (int i = 0; i < linesSize; i++) {
-                            lines.remove(0);
-                        }
-                        removeInfoFromPanel();
-                    } else {
-                        something.setPaint(Color.WHITE);
-                        if (pred != null) {
-                            pred.setPaint(Color.WHITE);
-                            pred.moveToBack();
-                        }
-
-                        if (succ != null) {
-                            succ.setPaint(Color.WHITE);
-                            succ.moveToBack();
-                        }
-
-                        something.moveToBack();
-                        edgeLayer.removeChildren(lines);
-
-                        int fingersSize = fingerNodes.size();
-                        for (int i = 0; i < fingersSize; i++) {
-                            if ((PNode) fingerNodes.get(i) != null) {
-                                ((PNode) fingerNodes.get(i)).setPaint(Color.WHITE);
-                                ((PNode) fingerNodes.get(i)).moveToBack();
-                            }
-                        }
-
-                        int linesSize = lines.size();
-                        for (int i = 0; i < linesSize; i++) {
-                            lines.remove(0);
-                        }
-
-                        selectedSomething = false;
-
-                        if (!e.getPickedNode().getAttribute("predecessor").equals("null")) {
-                            pred = (PNode) getRelationships().get((Long) e.getPickedNode().getAttribute("predecessor"));
-                            if (pred != null) {
-                                lines.add(drawLine(e.getPickedNode(), pred));
-                                pred.setPaint(Color.RED);
-                                pred.moveToFront();
-                            }
-                        } else {
-                            pred = null;
-                        }
-
-                        if (!e.getPickedNode().getAttribute("successor").equals("null")) {
-                            succ = (PNode) getRelationships().get((Long) e.getPickedNode().getAttribute("successor"));
-                            if (succ != null) {
-                                lines.add(drawLine(e.getPickedNode(), succ));
-                                succ.setPaint(Color.BLUE);
-                                succ.moveToFront();
-                            }
-                        } else {
-                            succ = null;
-                        }
-
-                        ArrayList fingerID = (ArrayList) e.getPickedNode().getAttribute("fingers");
-                        fingerNodes = new ArrayList();
-                        for (int i = 0; i < fingerID.size(); i++) {
-                            if (getRelationships().get((Long) fingerID.get(i)) != null) {
-                                fingerNodes.add(getRelationships().get((Long) fingerID.get(i)));
-                            }
-                        }
-                        int size = fingerNodes.size();
-                        for (int i = 0; i < size; i++) {
-                            ((PNode) fingerNodes.get(i)).setPaint(Color.YELLOW);
-                            ((PNode) fingerNodes.get(i)).moveToFront();
-                            lines.add(drawCurvedLine(e.getPickedNode(), (PNode) fingerNodes.get(i), size + 1, i + 1));
-                        }
-
-                        e.getPickedNode().setPaint(Color.GREEN);
-
-                        e.getPickedNode().moveToFront();
-                        edgeLayer.addChildren(lines);
-
-                        something = e.getPickedNode();
-                        pinnedNodeSimID = (Long) e.getPickedNode().getAttribute("simID");
-                        giveInfoToPanel(e.getPickedNode(), succ, pred, fingerNodes);
-                    }
-                }
+                colorizeNext(e.getPickedNode());
+                highlightedNode = e.getPickedNode();
             }
         }
 
         @Override
         public void mouseExited(PInputEvent e) {
-            super.mouseExited(e);
-            if (e.getButton() == MouseEvent.NOBUTTON) {
-                e.getPickedNode().setPaint(Color.WHITE);
-                if (pred != null) {
-                    pred.setPaint(Color.WHITE);
-                    pred.moveToBack();
-                }
-
-                if (succ != null) {
-                    succ.setPaint(Color.WHITE);
-                    succ.moveToBack();
-                }
-
-                e.getPickedNode().moveToBack();
-
-                edgeLayer.removeChildren(lines);
-
-                if (fingerNodes != null) {
-                    int fingersSize = fingerNodes.size();
-                    for (int i = 0; i < fingersSize; i++) {
-                        if (fingerNodes.get(i) != null) {
-                            ((PNode) fingerNodes.get(i)).setPaint(Color.WHITE);
-                            ((PNode) fingerNodes.get(i)).moveToBack();
-                        }
-                    }
-                }
-
-                int linesSize = lines.size();
-                for (int i = 0; i < linesSize; i++) {
-                    lines.remove(0);
-                }
-            }
+            decolorizeOld(e.getPickedNode());
+            highlightedNode = null;
         }
     }
 
+    /*public class ChordMouseEventHandler extends PBasicInputEventHandler {
+
+     PInputEventFilter filter;
+     ArrayList lines;
+     Boolean selectedSomething;
+     PNode something;
+     PNode pred, succ;
+     ArrayList fingerNodes;
+
+     public ChordMouseEventHandler(PInputEventFilter mouseFilter, ArrayList fingerLines, Boolean selected, PNode selectedNode) {
+     filter = mouseFilter;
+     lines = fingerLines;
+     selectedSomething = selected;
+     something = selectedNode;
+     filter.setOrMask(InputEvent.BUTTON1_MASK);
+     if (pinnedNodeSimID != -1) {
+     if (getRelationships().get(pinnedNodeSimID) != null) {
+     selectedSomething = false;
+     filter.setAcceptsMouseEntered(false);
+     filter.setAcceptsMouseExited(false);
+     something = (PNode) getRelationships().get(pinnedNodeSimID);
+     if (!something.getAttribute("predecessor").equals("null")) {
+     pred = (PNode) getRelationships().get((Long) something.getAttribute("predecessor"));
+     if (pred != null) {
+     lines.add(drawLine(something, pred));
+     pred.setPaint(Color.RED);
+     pred.moveToFront();
+     }
+     } else {
+     pred = null;
+     }
+
+     if (!something.getAttribute("successor").equals("null")) {
+     succ = (PNode) getRelationships().get((Long) something.getAttribute("successor"));
+     if (succ != null) {
+     lines.add(drawLine(something, succ));
+     succ.setPaint(Color.BLUE);
+     succ.moveToFront();
+     }
+     } else {
+     succ = null;
+     }
+
+     ArrayList fingerID = (ArrayList) something.getAttribute("fingers");
+     fingerNodes = new ArrayList();
+     for (int i = 0; i < fingerID.size(); i++) {
+     if (getRelationships().get((Long) fingerID.get(i)) != null) {
+     fingerNodes.add(getRelationships().get((Long) fingerID.get(i)));
+     }
+     }
+     int size = fingerNodes.size();
+     for (int i = 0; i < size; i++) {
+     ((PNode) fingerNodes.get(i)).setPaint(Color.YELLOW);
+     ((PNode) fingerNodes.get(i)).moveToFront();
+     lines.add(drawCurvedLine(something, (PNode) fingerNodes.get(i), size + 1, i + 1));
+     }
+
+     something.setPaint(Color.GREEN);
+
+     something.moveToFront();
+     edgeLayer.addChildren(lines);
+     giveInfoToPanel(something, succ, pred, fingerNodes);
+     } else {
+     pinnedNodeSimID = -1;
+     }
+     }
+     setEventFilter(filter);
+     }
+
+     @Override
+     public void mouseEntered(PInputEvent e) {
+     super.mouseEntered(e);
+     if (e.getButton() == MouseEvent.NOBUTTON) {
+     //special pred treatment
+     if (!e.getPickedNode().getAttribute("predecessor").equals("null")) {
+     pred = (PNode) getRelationships().get((Long) e.getPickedNode().getAttribute("predecessor"));
+     //necessary
+     if (pred != null) {
+     lines.add(drawLine(e.getPickedNode(), pred));
+     pred.setPaint(Color.RED);
+     pred.moveToFront();
+     }
+     } else {
+     pred = null;
+     }
+
+     if (!e.getPickedNode().getAttribute("successor").equals("null")) {
+     succ = (PNode) getRelationships().get((Long) e.getPickedNode().getAttribute("successor"));
+     if (succ != null) {
+     lines.add(drawLine(e.getPickedNode(), succ));
+     succ.setPaint(Color.BLUE);
+     succ.moveToFront();
+     }
+     } else {
+     succ = null;
+     }
+
+
+     ArrayList fingerID = (ArrayList) e.getPickedNode().getAttribute("fingers");
+     fingerNodes = new ArrayList();
+     for (int i = 0; i < fingerID.size(); i++) {
+     if (getRelationships().get((Long) fingerID.get(i)) != null) {
+     fingerNodes.add(getRelationships().get((Long) fingerID.get(i)));
+     }
+     }
+     int size = fingerNodes.size();
+     for (int i = 0; i < size; i++) {
+     ((PNode) fingerNodes.get(i)).setPaint(Color.YELLOW);
+     ((PNode) fingerNodes.get(i)).moveToFront();
+     lines.add(drawCurvedLine(e.getPickedNode(), (PNode) fingerNodes.get(i), size + 1, i + 1));
+     }
+
+     e.getPickedNode().setPaint(Color.GREEN);
+     e.getPickedNode().moveToFront();
+     edgeLayer.addChildren(lines);
+     }
+     }
+
+     @Override
+     public void mouseClicked(PInputEvent e) {
+     super.mouseClicked(e);
+     if (e.getButton() == MouseEvent.BUTTON1) {
+     if (selectedSomething) {
+     something = e.getPickedNode();
+     pinnedNodeSimID = (Long) e.getPickedNode().getAttribute("simID");
+     filter.setAcceptsMouseExited(false);
+     filter.setAcceptsMouseEntered(false);
+     selectedSomething = false;
+     giveInfoToPanel(e.getPickedNode(), succ, pred, fingerNodes);
+     } else {
+     if (something.equals(e.getPickedNode()) || pinnedNodeSimID == (Long) e.getPickedNode().getAttribute("simID")) {
+     pinnedNodeSimID = -1;
+     filter.setAcceptsMouseExited(true);
+     filter.setAcceptsMouseEntered(true);
+     selectedSomething = true;
+
+     e.getPickedNode().setPaint(Color.WHITE);
+     if (pred != null) {
+     pred.setPaint(Color.WHITE);
+     pred.moveToBack();
+     }
+
+     if (succ != null) {
+     succ.setPaint(Color.WHITE);
+     succ.moveToBack();
+     }
+
+     e.getPickedNode().moveToBack();
+
+     edgeLayer.removeChildren(lines);
+
+     int fingersSize = fingerNodes.size();
+     for (int i = 0; i < fingersSize; i++) {
+     if ((PNode) fingerNodes.get(i) != null) {
+     ((PNode) fingerNodes.get(i)).setPaint(Color.WHITE);
+     ((PNode) fingerNodes.get(i)).moveToBack();
+     }
+     }
+
+     int linesSize = lines.size();
+     for (int i = 0; i < linesSize; i++) {
+     lines.remove(0);
+     }
+     removeInfoFromPanel();
+     } else {
+     something.setPaint(Color.WHITE);
+     if (pred != null) {
+     pred.setPaint(Color.WHITE);
+     pred.moveToBack();
+     }
+
+     if (succ != null) {
+     succ.setPaint(Color.WHITE);
+     succ.moveToBack();
+     }
+
+     something.moveToBack();
+     edgeLayer.removeChildren(lines);
+
+     int fingersSize = fingerNodes.size();
+     for (int i = 0; i < fingersSize; i++) {
+     if ((PNode) fingerNodes.get(i) != null) {
+     ((PNode) fingerNodes.get(i)).setPaint(Color.WHITE);
+     ((PNode) fingerNodes.get(i)).moveToBack();
+     }
+     }
+
+     int linesSize = lines.size();
+     for (int i = 0; i < linesSize; i++) {
+     lines.remove(0);
+     }
+
+     selectedSomething = false;
+
+     if (!e.getPickedNode().getAttribute("predecessor").equals("null")) {
+     pred = (PNode) getRelationships().get((Long) e.getPickedNode().getAttribute("predecessor"));
+     if (pred != null) {
+     lines.add(drawLine(e.getPickedNode(), pred));
+     pred.setPaint(Color.RED);
+     pred.moveToFront();
+     }
+     } else {
+     pred = null;
+     }
+
+     if (!e.getPickedNode().getAttribute("successor").equals("null")) {
+     succ = (PNode) getRelationships().get((Long) e.getPickedNode().getAttribute("successor"));
+     if (succ != null) {
+     lines.add(drawLine(e.getPickedNode(), succ));
+     succ.setPaint(Color.BLUE);
+     succ.moveToFront();
+     }
+     } else {
+     succ = null;
+     }
+
+     ArrayList fingerID = (ArrayList) e.getPickedNode().getAttribute("fingers");
+     fingerNodes = new ArrayList();
+     for (int i = 0; i < fingerID.size(); i++) {
+     if (getRelationships().get((Long) fingerID.get(i)) != null) {
+     fingerNodes.add(getRelationships().get((Long) fingerID.get(i)));
+     }
+     }
+     int size = fingerNodes.size();
+     for (int i = 0; i < size; i++) {
+     ((PNode) fingerNodes.get(i)).setPaint(Color.YELLOW);
+     ((PNode) fingerNodes.get(i)).moveToFront();
+     lines.add(drawCurvedLine(e.getPickedNode(), (PNode) fingerNodes.get(i), size + 1, i + 1));
+     }
+
+     e.getPickedNode().setPaint(Color.GREEN);
+
+     e.getPickedNode().moveToFront();
+     edgeLayer.addChildren(lines);
+
+     something = e.getPickedNode();
+     pinnedNodeSimID = (Long) e.getPickedNode().getAttribute("simID");
+     giveInfoToPanel(e.getPickedNode(), succ, pred, fingerNodes);
+     }
+     }
+     }
+     }
+
+     @Override
+     public void mouseExited(PInputEvent e) {
+     super.mouseExited(e);
+     if (e.getButton() == MouseEvent.NOBUTTON) {
+     e.getPickedNode().setPaint(Color.WHITE);
+     if (pred != null) {
+     pred.setPaint(Color.WHITE);
+     pred.moveToBack();
+     }
+
+     if (succ != null) {
+     succ.setPaint(Color.WHITE);
+     succ.moveToBack();
+     }
+
+     e.getPickedNode().moveToBack();
+
+     edgeLayer.removeChildren(lines);
+
+     if (fingerNodes != null) {
+     int fingersSize = fingerNodes.size();
+     for (int i = 0; i < fingersSize; i++) {
+     if (fingerNodes.get(i) != null) {
+     ((PNode) fingerNodes.get(i)).setPaint(Color.WHITE);
+     ((PNode) fingerNodes.get(i)).moveToBack();
+     }
+     }
+     }
+
+     int linesSize = lines.size();
+     for (int i = 0; i < linesSize; i++) {
+     lines.remove(0);
+     }
+     }
+     }
+     }*/
     private class TooltipHandler extends PBasicInputEventHandler {
 
         public TooltipHandler() {
