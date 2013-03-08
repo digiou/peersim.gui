@@ -574,6 +574,27 @@ public class ChordCanvas extends PCanvas {
             decolorizeOld(e.getPickedNode());
             highlightedNode = null;
         }
+        
+        @Override
+        public void mouseClicked(PInputEvent e) {
+            if (e.getButton() == MouseEvent.BUTTON1) {
+                if(pinnedNodeSimID == -1){
+                    decolorizeKeyboard(e.getPickedNode());
+                    colorizeKeyboard(e.getPickedNode());
+                    pinnedNodeSimID = (long) e.getPickedNode().getAttribute("simID");
+                } else {
+                    if(pinnedNodeSimID == (long) e.getPickedNode().getAttribute("simID")){
+                        decolorizeKeyboard(e.getPickedNode());
+                        pinnedNodeSimID = -1;
+                    } else {
+                        PNode oldNode = getRelationships().get(pinnedNodeSimID);
+                        decolorizeKeyboard(oldNode);
+                        colorizeKeyboard(e.getPickedNode());
+                        pinnedNodeSimID = (long) e.getPickedNode().getAttribute("simID");
+                    }
+                }
+            }
+        }
     }
 
     /*public class ChordMouseEventHandler extends PBasicInputEventHandler {
