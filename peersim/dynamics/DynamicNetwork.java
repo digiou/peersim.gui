@@ -123,15 +123,18 @@ protected final NodeInitializer[] inits;
  */
 protected void add(int n)
 {
+        Node[] nodeArray = new Node[n];
 	for (int i = 0; i < n; ++i) {
 		Node newnode = (Node) Network.prototype.clone();
 		for (int j = 0; j < inits.length; ++j) {
 			inits[j].initialize(newnode);
 		}
 		Network.add(newnode);
+                nodeArray[i] = newnode;
 	}
-        if(n!=0){
+        if(n>0){
             NetworkHistory.addToHistory(Network.getNodes(), Network.size(), CommonState.getTime(), "addition of " + n + " nodes ");
+            NetworkHistory.addToHistory(nodeArray, n, CommonState.getTime(), "diff");
         }
         
 }
@@ -146,12 +149,13 @@ protected void add(int n)
  */
 protected void remove(int n)
 {
-        
+        Node[] nodeArray = new Node[n];
 	for (int i = 0; i < n; ++i) {
-		Network.remove(CommonState.r.nextInt(Network.size()));
+		nodeArray[i] = Network.remove(CommonState.r.nextInt(Network.size()));
 	}
         if(n!=0){
             NetworkHistory.addToHistory(Network.getNodes(), Network.size(), CommonState.getTime(), "addition of " + n + " nodes ");
+            NetworkHistory.addToHistory(nodeArray, n, CommonState.getTime(), "diff");
         }
 }
 
