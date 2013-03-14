@@ -133,7 +133,7 @@ protected void add(int n)
                 nodeArray[i] = newnode;
 	}
         if(n>0){
-            NetworkHistory.addToHistory(Network.getNodes(), Network.size(), CommonState.getTime(), "addition of " + n + " nodes ");
+            NetworkHistory.addToHistory(Network.getNodes(), Network.size(), CommonState.getTime(), "addition");
             NetworkHistory.addToHistory(nodeArray, n, CommonState.getTime(), "diff");
         }
         
@@ -154,7 +154,7 @@ protected void remove(int n)
 		nodeArray[i] = Network.remove(CommonState.r.nextInt(Network.size()));
 	}
         if(n!=0){
-            NetworkHistory.addToHistory(Network.getNodes(), Network.size(), CommonState.getTime(), "addition of " + n + " nodes ");
+            NetworkHistory.addToHistory(Network.getNodes(), Network.size(), CommonState.getTime(), "removal");
             NetworkHistory.addToHistory(nodeArray, n, CommonState.getTime(), "diff");
         }
 }

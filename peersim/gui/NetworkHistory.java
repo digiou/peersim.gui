@@ -14,13 +14,13 @@ import peersim.core.Node;
 public class NetworkHistory {
     
     private static ArrayList<HistoryObject> EventHistory = new ArrayList<HistoryObject>();
-    private static ArrayList<Node[]> DiffHistory = new ArrayList();
+    private static ArrayList<HistoryObject> DiffHistory = new ArrayList();
     
     private NetworkHistory(){}
     
     public static void addToHistory(Node[] someNodes, int datSize, long timeStamp, String updateCause){
         if(updateCause.equals("diff")){
-            DiffHistory.add(someNodes);
+            DiffHistory.add(new HistoryObject(someNodes, datSize, timeStamp, updateCause));
         } else {
             EventHistory.add(new HistoryObject(someNodes, datSize, timeStamp, updateCause));
         }
@@ -34,7 +34,7 @@ public class NetworkHistory {
         return EventHistory.get(index);
     }
     
-    public static Node[] getDiff(int index){
+    public static HistoryObject getDiff(int index){
         return DiffHistory.get(index);
     }
     

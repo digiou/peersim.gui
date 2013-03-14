@@ -10,8 +10,10 @@ import edu.umd.cs.piccolo.event.PInputEventFilter;
 import edu.umd.cs.piccolo.nodes.PPath;
 import edu.umd.cs.piccolo.nodes.PText;
 import edu.umd.cs.piccolox.util.PFixedWidthStroke;
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Stroke;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
@@ -20,6 +22,7 @@ import java.awt.geom.Point2D;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.TreeMap;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -52,7 +55,7 @@ public class ChordCanvas extends PCanvas {
     private PLayer nodeLayer = this.getLayer();
     private PLayer edgeLayer = new PLayer();
     private InfoPanel panel;
-    private HistoryObject currentNetwork;
+    private HistoryObject currentNetwork, currentDiff;
     private JButton back, frwrd, nextNodeButton, previousNodeButton;
     private JTextField gotoField, stepField;
     private PBasicInputEventHandler mouseColors, tooltip;
@@ -62,6 +65,7 @@ public class ChordCanvas extends PCanvas {
     private Boolean selected = true;
     private Boolean highlighting = false;
     private PNode selectedNode, highlightedNode;
+    private HashSet diffHashSet;
 
     public ChordCanvas(InfoPanel inheritedPanel) {
         super();
@@ -171,6 +175,13 @@ public class ChordCanvas extends PCanvas {
 
     private void draw(int pointer) {
         currentNetwork = NetworkHistory.getEntry(pointer);
+        if (currentNetwork.getReason().equals("addition")) {
+            currentDiff = NetworkHistory.getDiff(pointer - 1);
+            diffHashSet = new HashSet();
+            for (int i = 0; i < currentDiff.size(); i++) {
+                diffHashSet.add(currentDiff.getNode(i).getID());
+            }
+        }
         eventTooltipNode.setText("Current event: " + currentNetwork.getReason() + " @time: " + currentNetwork.getTime());
         hashmap = new HashMap<>();
         chordIDTreeMap = new TreeMap<>();
@@ -184,12 +195,22 @@ public class ChordCanvas extends PCanvas {
     private void drawNodes(PLayer nodeLayer) {
         for (int i = 0; i < currentNetwork.size(); i++) {
             HistoryChordProtocol hcp = (HistoryChordProtocol) currentNetwork.getNode(i).getProtocol();
-            double angle = getAngle(hcp);
-            Circle node = new Circle(angle);
-            nodeLayer.addChild(node);
-            storeInfo(node, hcp, currentNetwork.getNode(i).getID());
-            hashmap.put(currentNetwork.getNode(i).getID(), node);
             chordIDTreeMap.put(hcp.chordId, currentNetwork.getNode(i).getID());
+            double angle = getAngle(hcp);
+            Circle node;
+            Boolean isNew = false;
+            if (currentNetwork.getReason().equals("addition")) {
+                if (diffHashSet.contains(currentNetwork.getNode(i).getID())) {
+                    isNew = true;
+                }
+            }
+            node = new Circle(angle, isNew);
+            hashmap.put(currentNetwork.getNode(i).getID(), node);
+            storeInfo(node, hcp, currentNetwork.getNode(i).getID());
+            nodeLayer.addChild(node);
+            if (isNew) {
+                node.moveToFront();
+            }
         }
         if (pinnedNodeSimID != -1) {
             if ((PNode) getRelationships().get(pinnedNodeSimID) != null) {
@@ -289,10 +310,12 @@ public class ChordCanvas extends PCanvas {
             panel.setSuccId("Not def yet!");
         }
 
-        if (arraylist.get(0) != null) {
-            panel.addFingersToPanel(arraylist);
-        } else {
-            panel.resetFingers();
+        if (arraylist != null) {
+            if (arraylist.get(0) != null) {
+                panel.addFingersToPanel(arraylist);
+            } else {
+                panel.resetFingers();
+            }
         }
 
     }
@@ -456,7 +479,7 @@ public class ChordCanvas extends PCanvas {
         lines = new ArrayList();
         if (!nextNode.getAttribute("successor").equals("null")) {
             succNode = (PNode) getRelationships().get((Long) nextNode.getAttribute("successor"));
-            succNode.setPaint(Color.BLUE);
+            succNode.setPaint(Color.YELLOW);
             succNode.moveToFront();
             lines.add(drawLine(nextNode, succNode));
         } else {
@@ -465,7 +488,7 @@ public class ChordCanvas extends PCanvas {
 
         if (!nextNode.getAttribute("predecessor").equals("null")) {
             predNode = (PNode) getRelationships().get((Long) nextNode.getAttribute("predecessor"));
-            predNode.setPaint(Color.RED);
+            predNode.setPaint(Color.BLUE);
             predNode.moveToFront();
             lines.add(drawLine(nextNode, predNode));
         } else {
@@ -478,7 +501,7 @@ public class ChordCanvas extends PCanvas {
             if (!getRelationships().get((Long) fingerIDs.get(i)).equals("null")) {
                 PNode finger = getRelationships().get((Long) fingerIDs.get(i));
                 fingerNodes.add(finger);
-                finger.setPaint(Color.YELLOW);
+                finger.setPaint(Color.RED);
                 finger.moveToFront();
                 lines.add(drawCurvedLine(nextNode, finger, fingerIDs.size() + 1, i + 1));
             }
@@ -495,27 +518,49 @@ public class ChordCanvas extends PCanvas {
     private void decolorizeOld(PNode oldNode) {
         if (!oldNode.getAttribute("successor").equals("null")) {
             PNode succNode = (PNode) getRelationships().get((Long) oldNode.getAttribute("successor"));
-            succNode.setPaint(Color.WHITE);
-            succNode.moveToBack();
+            if (diffHashSet.contains(succNode.getAttribute("simID"))) {
+                succNode.setPaint(Color.MAGENTA);
+                succNode.moveToFront();
+            } else {
+                succNode.setPaint(Color.WHITE);
+                succNode.moveToBack();
+            }
+
         }
 
         if (!oldNode.getAttribute("predecessor").equals("null")) {
             PNode predNode = (PNode) getRelationships().get((Long) oldNode.getAttribute("predecessor"));
-            predNode.setPaint(Color.WHITE);
-            predNode.moveToBack();
+            if (diffHashSet.contains(predNode.getAttribute("simID"))) {
+                predNode.setPaint(Color.MAGENTA);
+                predNode.moveToFront();
+            } else {
+                predNode.setPaint(Color.WHITE);
+                predNode.moveToBack();
+            }
+
         }
 
         ArrayList fingerIDs = (ArrayList) oldNode.getAttribute("fingers");
         for (int i = 0; i < fingerIDs.size(); i++) {
             if (!getRelationships().get((Long) fingerIDs.get(i)).equals("null")) {
                 PNode finger = getRelationships().get((Long) fingerIDs.get(i));
-                finger.setPaint(Color.WHITE);
-                finger.moveToBack();
+                if (diffHashSet.contains(finger.getAttribute("simID"))) {
+                    finger.setPaint(Color.MAGENTA);
+                    finger.moveToFront();
+                } else {
+                    finger.setPaint(Color.WHITE);
+                    finger.moveToBack();
+                }
             }
         }
 
-        oldNode.setPaint(Color.WHITE);
-        oldNode.moveToBack();
+        if (diffHashSet.contains(oldNode.getAttribute("simID"))) {
+            oldNode.setPaint(Color.MAGENTA);
+            oldNode.moveToFront();
+        } else {
+            oldNode.setPaint(Color.WHITE);
+            oldNode.moveToBack();
+        }
 
         edgeLayer.removeChildren(lines);
 
@@ -541,10 +586,14 @@ public class ChordCanvas extends PCanvas {
 
     private class Circle extends PPath {
 
-        Circle(double angle) {
-            setPaint(Color.white);
+        Circle(double angle, boolean isNew) {
             setStrokePaint(Color.black);
             setStroke(new PFixedWidthStroke());
+            if (isNew) {
+                setPaint(Color.MAGENTA);
+            } else {
+                setPaint(Color.white);
+            }
             float x = cx + (float) (radius * Math.sin(angle));
             float y = cy - (float) (radius * Math.cos(angle));
             setPathToEllipse(x, y, 9, 9);
