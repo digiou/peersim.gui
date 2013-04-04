@@ -153,7 +153,7 @@ public class StartGui extends JFrame {
 
     private boolean saveFile() {
         if (file == null) {
-            fileChooser.setSelectedFile(new File("Untitled.txt"));
+            fileChooser.setSelectedFile(new File("Untitled.cfg"));
         }
 
         int result = fileChooser.showSaveDialog(this);
