@@ -518,48 +518,66 @@ public class ChordCanvas extends PCanvas {
     private void decolorizeOld(PNode oldNode) {
         if (!oldNode.getAttribute("successor").equals("null")) {
             PNode succNode = (PNode) getRelationships().get((Long) oldNode.getAttribute("successor"));
-            if (diffHashSet.contains(succNode.getAttribute("simID"))) {
-                succNode.setPaint(Color.MAGENTA);
-                succNode.moveToFront();
-            } else {
+            if (currentNetwork.getReason().equals("initial")) {
                 succNode.setPaint(Color.WHITE);
                 succNode.moveToBack();
+            } else {
+                if (diffHashSet.contains(succNode.getAttribute("simID"))) {
+                    succNode.setPaint(Color.MAGENTA);
+                    succNode.moveToFront();
+                } else {
+                    succNode.setPaint(Color.WHITE);
+                    succNode.moveToBack();
+                }
             }
-
         }
 
         if (!oldNode.getAttribute("predecessor").equals("null")) {
             PNode predNode = (PNode) getRelationships().get((Long) oldNode.getAttribute("predecessor"));
-            if (diffHashSet.contains(predNode.getAttribute("simID"))) {
-                predNode.setPaint(Color.MAGENTA);
-                predNode.moveToFront();
-            } else {
+            if (currentNetwork.getReason().equals("initial")) {
                 predNode.setPaint(Color.WHITE);
                 predNode.moveToBack();
+            } else {
+                if (diffHashSet.contains(predNode.getAttribute("simID"))) {
+                    predNode.setPaint(Color.MAGENTA);
+                    predNode.moveToFront();
+                } else {
+                    predNode.setPaint(Color.WHITE);
+                    predNode.moveToBack();
+                }
             }
-
         }
 
         ArrayList fingerIDs = (ArrayList) oldNode.getAttribute("fingers");
         for (int i = 0; i < fingerIDs.size(); i++) {
             if (!getRelationships().get((Long) fingerIDs.get(i)).equals("null")) {
                 PNode finger = getRelationships().get((Long) fingerIDs.get(i));
-                if (diffHashSet.contains(finger.getAttribute("simID"))) {
-                    finger.setPaint(Color.MAGENTA);
-                    finger.moveToFront();
-                } else {
+                if (currentNetwork.getReason().equals("initial")) {
                     finger.setPaint(Color.WHITE);
                     finger.moveToBack();
+                } else {
+                    if (diffHashSet.contains(finger.getAttribute("simID"))) {
+                        finger.setPaint(Color.MAGENTA);
+                        finger.moveToFront();
+                    } else {
+                        finger.setPaint(Color.WHITE);
+                        finger.moveToBack();
+                    }
                 }
             }
         }
 
-        if (diffHashSet.contains(oldNode.getAttribute("simID"))) {
-            oldNode.setPaint(Color.MAGENTA);
-            oldNode.moveToFront();
-        } else {
+        if (currentNetwork.getReason().equals("initial")) {
             oldNode.setPaint(Color.WHITE);
             oldNode.moveToBack();
+        } else {
+            if (diffHashSet.contains(oldNode.getAttribute("simID"))) {
+                oldNode.setPaint(Color.MAGENTA);
+                oldNode.moveToFront();
+            } else {
+                oldNode.setPaint(Color.WHITE);
+                oldNode.moveToBack();
+            }
         }
 
         edgeLayer.removeChildren(lines);

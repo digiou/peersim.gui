@@ -24,6 +24,6 @@ public class ChordFrame extends JFrame{
         add(new ChordCanvas(infoPanel), BorderLayout.CENTER);
         pack();
         setVisible(true);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        //setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     } 
 }

@@ -16,7 +16,8 @@ public class GUIRunnable implements Runnable {
 
     @Override
     public void run() {
-        ChordFrame frame = new ChordFrame();
+        StartGui start = new StartGui();
+        //ChordFrame frame = new ChordFrame();
     }
     
 }

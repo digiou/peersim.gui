@@ -2,7 +2,6 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package peersim.gui;
 
 import java.awt.BorderLayout;
@@ -31,6 +30,7 @@ public class StartGui extends JFrame {
     private JFileChooser fileChooser = new JFileChooser();
     private boolean isSaved = true;
     DetectChangeDocumentListener textAreaDocumentListener;
+    private JTabbedPane tabbedPane = new JTabbedPane();
 
     public StartGui() {
         setTitle("Peersim Launcher");
@@ -44,16 +44,15 @@ public class StartGui extends JFrame {
         outputTextArea.setEditable(false);
         JScrollPane outputScrollPane = new JScrollPane(outputTextArea);
 
-        JTabbedPane tabbedPane = new JTabbedPane();
+
         tabbedPane.addTab("Input file", inputScrollPane);
         tabbedPane.addTab("Console output", outputScrollPane);
         tabbedPane.setTabPlacement(JTabbedPane.BOTTOM);
         add(tabbedPane, BorderLayout.CENTER);
 
-        JMenu fileMenu = new JMenu("File");
+        JMenu fileMenu = new JMenu("Configuration");
         JMenuItem openMenuItem = new JMenuItem("Open file");
         openMenuItem.addActionListener(new ActionListener() {
-
             public void actionPerformed(ActionEvent e) {
                 loadFile();
             }
@@ -61,7 +60,6 @@ public class StartGui extends JFrame {
 
         JMenuItem saveMenuItem = new JMenuItem("Save file");
         saveMenuItem.addActionListener(new ActionListener() {
-
             public void actionPerformed(ActionEvent e) {
                 saveFile();
             }
@@ -69,7 +67,6 @@ public class StartGui extends JFrame {
 
         JMenuItem exitMenuItem = new JMenuItem("Exit");
         exitMenuItem.addActionListener(new ActionListener() {
-
             public void actionPerformed(ActionEvent e) {
                 handleExit();
             }
@@ -83,9 +80,9 @@ public class StartGui extends JFrame {
         JMenu simuMenu = new JMenu("Simulation");
         JMenuItem startMenuItem = new JMenuItem("Start");
         startMenuItem.addActionListener(new ActionListener() {
-
             public void actionPerformed(ActionEvent e) {
-                startSimuation();
+                startSimulation();
+                tabbedPane.setSelectedIndex(1);
             }
         });
 
@@ -102,7 +99,6 @@ public class StartGui extends JFrame {
         add(status, BorderLayout.PAGE_END);
 
         addWindowListener(new WindowAdapter() {
-
             public void windowClosing(WindowEvent e) {
                 super.windowClosing(e);
                 handleExit();
@@ -110,6 +106,7 @@ public class StartGui extends JFrame {
         });
 
         setVisible(true);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
     }
 
     private void loadFile() {
@@ -125,6 +122,7 @@ public class StartGui extends JFrame {
                 inputTextArea.setText(textBuffer.toString());
                 inputTextArea.setEditable(true);
                 status.setText("Using file: " + file.getAbsolutePath());
+                isSaved = true;
             } catch (FileNotFoundException e) {
                 JOptionPane.showMessageDialog(this, "Couldn't save file.", "Error", JOptionPane.ERROR_MESSAGE);
                 return;
@@ -178,22 +176,29 @@ public class StartGui extends JFrame {
         return false;
     }
 
-    private void startSimuation() {
-        if (isSaved) {
-            redirectSystemStreams();
-            // XXX to do
-            
+    private void startSimulation() {
+        redirectSystemStreams();
+        if (inputTextArea.getText().equals("")) {
+            System.err.println("Empty configuration");
         } else {
-            saveFile();
-            redirectSystemStreams();
-            // XXX to do
-            
+            if (!isSaved) {
+                saveFile();
+            }
+            String[] args = new String[1];
+            args[0] = file.getAbsolutePath();
+            Thread sim = new Thread(new SimulatorRunnable(args), "SIM");
+            sim.start();
+            try {
+                sim.join();
+            } catch (InterruptedException e) {
+                System.err.println("ERROR: Thread " + sim.getName() + " was interrupted!");
+            }
+            ChordFrame frame = new ChordFrame();
         }
     }
 
     private void updateTextArea(final String text) {
         SwingUtilities.invokeLater(new Runnable() {
-
             public void run() {
                 outputTextArea.append(text);
             }
@@ -202,7 +207,6 @@ public class StartGui extends JFrame {
 
     private void redirectSystemStreams() {
         OutputStream out = new OutputStream() {
-
             @Override
             public void write(int b) throws IOException {
                 updateTextArea(String.valueOf((char) b));
