@@ -66,6 +66,7 @@ public class ChordCanvas extends PCanvas {
     private Boolean highlighting = false;
     private PNode selectedNode, highlightedNode;
     private HashSet diffHashSet;
+    private ArrayList<PNode> newlyAddedNodes;
 
     public ChordCanvas(InfoPanel inheritedPanel) {
         super();
@@ -187,6 +188,7 @@ public class ChordCanvas extends PCanvas {
         chordIDTreeMap = new TreeMap<>();
         mouseColors = new MouseEventHandler(mouseFilter);
         tooltip = new TooltipHandler();
+        newlyAddedNodes = new ArrayList<>();
         nodeLayer.addInputEventListener(mouseColors);
         nodeLayer.addInputEventListener(tooltip);
         drawNodes(nodeLayer);
@@ -210,8 +212,10 @@ public class ChordCanvas extends PCanvas {
             nodeLayer.addChild(node);
             if (isNew) {
                 node.moveToFront();
+                newlyAddedNodes.add((PNode)node);
             }
         }
+        panelCheckNewlyAdded(newlyAddedNodes);
         if (pinnedNodeSimID != -1) {
             if ((PNode) getRelationships().get(pinnedNodeSimID) != null) {
                 colorizeKeyboard((PNode) getRelationships().get(pinnedNodeSimID));
@@ -318,6 +322,16 @@ public class ChordCanvas extends PCanvas {
             }
         }
 
+    }
+    
+    private void panelCheckNewlyAdded(ArrayList<PNode> newNodes){
+        if (currentNetwork.getReason().equals("addition")) {
+            panel.addNewlyAddedNodes(newNodes);
+            panel.setSecretLabel();
+        } else {
+            panel.resetNewlyAdded();
+            panel.setSecretLabel();
+        }
     }
 
     private void removeInfoFromPanel() {
@@ -479,7 +493,7 @@ public class ChordCanvas extends PCanvas {
         lines = new ArrayList();
         if (!nextNode.getAttribute("successor").equals("null")) {
             succNode = (PNode) getRelationships().get((Long) nextNode.getAttribute("successor"));
-            succNode.setPaint(Color.YELLOW);
+            succNode.setPaint(Color.RED);
             succNode.moveToFront();
             lines.add(drawLine(nextNode, succNode));
         } else {
@@ -501,7 +515,7 @@ public class ChordCanvas extends PCanvas {
             if (!getRelationships().get((Long) fingerIDs.get(i)).equals("null")) {
                 PNode finger = getRelationships().get((Long) fingerIDs.get(i));
                 fingerNodes.add(finger);
-                finger.setPaint(Color.RED);
+                finger.setPaint(Color.ORANGE);
                 finger.moveToFront();
                 lines.add(drawCurvedLine(nextNode, finger, fingerIDs.size() + 1, i + 1));
             }

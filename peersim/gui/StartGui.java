@@ -33,14 +33,16 @@ public class StartGui extends JFrame {
     private JTabbedPane tabbedPane = new JTabbedPane();
 
     public StartGui() {
-        setTitle("Peersim Launcher");
+        setTitle("ChordViz Launcher");
         setSize(800, 600);
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         setLayout(new BorderLayout());
 
         textAreaDocumentListener = new DetectChangeDocumentListener(this);
         inputTextArea.getDocument().addDocumentListener(textAreaDocumentListener);
+        inputTextArea.setFont(inputTextArea.getFont().deriveFont(12f));
         JScrollPane inputScrollPane = new JScrollPane(inputTextArea);
+        outputTextArea.setFont(outputTextArea.getFont().deriveFont(12f));
         outputTextArea.setEditable(false);
         JScrollPane outputScrollPane = new JScrollPane(outputTextArea);
 
@@ -146,8 +148,6 @@ public class StartGui extends JFrame {
             }
         } else if (result == JOptionPane.NO_OPTION) {
             dispose();
-        } else {
-            // Do nothing
         }
     }
 
