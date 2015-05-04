@@ -33,7 +33,7 @@ public class StartGui extends JFrame {
     private JTabbedPane tabbedPane = new JTabbedPane();
 
     public StartGui() {
-        setTitle("ChordViz Launcher");
+        setTitle("PViz Launcher");
         setSize(800, 600);
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         setLayout(new BorderLayout());
@@ -83,8 +83,8 @@ public class StartGui extends JFrame {
         JMenuItem startMenuItem = new JMenuItem("Start");
         startMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                startSimulation();
                 tabbedPane.setSelectedIndex(1);
+                startSimulation();
             }
         });
 

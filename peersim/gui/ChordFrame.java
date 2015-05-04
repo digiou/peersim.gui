@@ -15,7 +15,7 @@ import javax.swing.JFrame;
 public class ChordFrame extends JFrame{
     
     public ChordFrame(){
-        super("Chord Viz");
+        super("PViz");
         setLayout(new BorderLayout());
         setExtendedState(Frame.MAXIMIZED_BOTH);
         

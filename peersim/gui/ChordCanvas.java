@@ -427,20 +427,27 @@ public class ChordCanvas extends PCanvas {
             }
         } else {
             PNode pinnedNode = (PNode) getRelationships().get(pinnedNodeSimID);
-            decolorizeKeyboard(pinnedNode);
-            BigInteger pinnedChordID = ((BigInteger) ((PNode) getRelationships().get(pinnedNodeSimID)).getAttribute("chordId"));
-            BigInteger newChordID = chordIDTreeMap.higherKey(pinnedChordID);
-            PNode nextNode;
-            if (newChordID == null) {
-                nextNode = firstNode;
-                pinnedNodeSimID = firstSimID;
+            if(pinnedNode != null){
+                decolorizeKeyboard(pinnedNode);
+                BigInteger pinnedChordID = ((BigInteger) ((PNode) getRelationships().get(pinnedNodeSimID)).getAttribute("chordId"));
+                BigInteger newChordID = chordIDTreeMap.higherKey(pinnedChordID);
+                PNode nextNode;
+                if (newChordID == null) {
+                    nextNode = firstNode;
+                    pinnedNodeSimID = firstSimID;
+                } else {
+                    nextNode = (PNode) getRelationships().get(chordIDTreeMap.get(newChordID));
+                    pinnedNodeSimID = chordIDTreeMap.get(newChordID);
+                }
+                colorizeKeyboard(nextNode);
+                selectedNode = nextNode;
+                selected = true;
             } else {
-                nextNode = (PNode) getRelationships().get(chordIDTreeMap.get(newChordID));
-                pinnedNodeSimID = chordIDTreeMap.get(newChordID);
+                pinnedNodeSimID = firstSimID;
+                colorizeKeyboard(firstNode);
+                selectedNode = firstNode;
+                selected = true;
             }
-            colorizeKeyboard(nextNode);
-            selectedNode = nextNode;
-            selected = true;
         }
     }
 
@@ -471,20 +478,28 @@ public class ChordCanvas extends PCanvas {
             }
         } else {
             PNode pinnedNode = (PNode) getRelationships().get(pinnedNodeSimID);
-            decolorizeKeyboard(pinnedNode);
-            BigInteger pinnedChordID = ((BigInteger) ((PNode) getRelationships().get(pinnedNodeSimID)).getAttribute("chordId"));
-            BigInteger newChordID = chordIDTreeMap.lowerKey(pinnedChordID);
-            PNode nextNode;
-            if (newChordID == null) {
-                nextNode = lastNode;
-                pinnedNodeSimID = lastSimID;
+            if(pinnedNode != null){
+                decolorizeKeyboard(pinnedNode);
+                BigInteger pinnedChordID = ((BigInteger) ((PNode) getRelationships().get(pinnedNodeSimID)).getAttribute("chordId"));
+                BigInteger newChordID = chordIDTreeMap.lowerKey(pinnedChordID);
+                PNode nextNode;
+                if (newChordID == null) {
+                    nextNode = lastNode;
+                    pinnedNodeSimID = lastSimID;
+                } else {
+                    nextNode = (PNode) getRelationships().get(chordIDTreeMap.get(newChordID));
+                    pinnedNodeSimID = chordIDTreeMap.get(newChordID);
+                }
+                colorizeKeyboard(nextNode);
+                selectedNode = nextNode;
+                selected = true;
             } else {
-                nextNode = (PNode) getRelationships().get(chordIDTreeMap.get(newChordID));
-                pinnedNodeSimID = chordIDTreeMap.get(newChordID);
+                pinnedNodeSimID = lastSimID;
+                colorizeKeyboard(lastNode);
+                selectedNode = lastNode;
+                selected = true;
             }
-            colorizeKeyboard(nextNode);
-            selectedNode = nextNode;
-            selected = true;
+            
         }
     }
 
@@ -605,15 +620,19 @@ public class ChordCanvas extends PCanvas {
     }
 
     private void colorizeKeyboard(PNode aNode) {
-        colorizeNext(aNode);
-        mouseFilter.setAcceptsMouseExited(false);
-        mouseFilter.setAcceptsMouseEntered(false);
+        if(aNode != null){
+            colorizeNext(aNode);
+            mouseFilter.setAcceptsMouseExited(false);
+            mouseFilter.setAcceptsMouseEntered(false);
+        }
     }
 
     private void decolorizeKeyboard(PNode aNode) {
-        decolorizeOld(aNode);
-        mouseFilter.setAcceptsMouseExited(true);
-        mouseFilter.setAcceptsMouseEntered(true);
+        if(aNode != null){
+            decolorizeOld(aNode);
+            mouseFilter.setAcceptsMouseExited(true);
+            mouseFilter.setAcceptsMouseEntered(true);
+        }
     }
 
     private class Circle extends PPath {
